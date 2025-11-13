@@ -1,67 +1,84 @@
 import axios from "axios";
 
-const api = axios.create({
-  // backend default port changed to 5001 to avoid macOS services on 5000
+// Ride service API (port 5001)
+const rideApi = axios.create({
   baseURL: "http://localhost:5001/api",
   headers: {
     "Content-Type": "application/json",
     Accept: "application/json",
   },
   withCredentials: true,
-  // Increase timeout to reduce false 'No response' errors on slow dev machines
   timeout: 15000,
 });
 
-// Attach auth token automatically from localStorage for all requests
-api.interceptors.request.use(
-  (config) => {
-    try {
-      const token =
-        typeof window !== "undefined"
-          ? localStorage.getItem("authToken")
-          : null;
-      if (token) {
-        config.headers = config.headers || {};
-        config.headers.Authorization = `Bearer ${token}`;
-      }
-    } catch (e) {}
-    return config;
+// Auth service API (port 5002)
+const authApi = axios.create({
+  baseURL: "http://localhost:5002/api",
+  headers: {
+    "Content-Type": "application/json",
+    Accept: "application/json",
   },
-  (error) => Promise.reject(error)
-);
+  withCredentials: true,
+  timeout: 15000,
+});
 
-// Global response handler: if server returns 401, clear stored credentials and
-// prompt a re-login so users get a fresh token. This prevents silent failures
-// where the UI cannot perform authenticated actions because the token expired.
-api.interceptors.response.use(
-  (res) => res,
-  (err) => {
-    try {
-      if (err?.response?.status === 401) {
-        // Clear auth and redirect to login page
-        try {
-          localStorage.removeItem("authToken");
-          localStorage.removeItem("user");
-        } catch (e) {}
-        // Avoid triggering multiple redirects if many requests fail at once.
-        // Use a simple global guard so redirect happens only once per session.
-        try {
-          if (!window.__authRedirecting) {
-            window.__authRedirecting = true;
-            // small delay so callers can finish handling if needed
-            window.setTimeout(() => {
-              try {
-                window.location.href = "/auth";
-              } catch (e) {}
-            }, 300);
-          }
-        } catch (e) {
-          console.error("Auth redirect guard error", e);
-        }
+// Attach auth token for both services
+const attachToken = (config) => {
+  try {
+    const token =
+      typeof window !== "undefined"
+        ? localStorage.getItem("authToken")
+        : null;
+    if (token) {
+      config.headers = config.headers || {};
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+  } catch (e) {}
+  return config;
+};
+
+rideApi.interceptors.request.use(attachToken, (error) => Promise.reject(error));
+authApi.interceptors.request.use(attachToken, (error) => Promise.reject(error));
+
+// Global response handler for 401
+const handle401 = (err) => {
+  try {
+    if (err?.response?.status === 401) {
+      console.log("401 error received:", err.config?.url, err.response?.data);
+      
+      // Don't redirect if we're already on the auth page
+      if (window.location.pathname === "/auth") {
+        return Promise.reject(err);
       }
-    } catch (e) {}
-    return Promise.reject(err);
-  }
-);
+      
+      try {
+        localStorage.removeItem("authToken");
+        localStorage.removeItem("user");
+      } catch (e) {}
+      
+      try {
+        if (!window.__authRedirecting) {
+          window.__authRedirecting = true;
+          console.log("Redirecting to auth page in 1 second...");
+          window.setTimeout(() => {
+            try {
+              window.location.href = "/auth";
+            } catch (e) {}
+          }, 1000); // Increased delay so user can see error message
+        }
+      } catch (e) {
+        console.error("Auth redirect guard error", e);
+      }
+    }
+  } catch (e) {}
+  return Promise.reject(err);
+};
 
-export default api;
+rideApi.interceptors.response.use((res) => res, handle401);
+authApi.interceptors.response.use((res) => res, handle401);
+
+// Default export for ride service (backward compatibility)
+export default rideApi;
+
+// Named exports for specific services
+export { rideApi, authApi };

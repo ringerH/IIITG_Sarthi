@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import api from "../api/config";
+import { authApi, rideApi } from "../api/config"; // Import both APIs
 import "../App.css";
 import { io } from "socket.io-client";
 
@@ -27,25 +27,32 @@ function UserProfile() {
       setLoading(true);
       setMessage("");
       try {
-        const res = await api.get("/user/me", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        console.log("[UserProfile] Fetching profile with token:", token ? "present" : "missing");
+        // Use authApi for profile endpoint
+        const res = await authApi.get("/user/me");
+        console.log("[UserProfile] Profile response:", res.data);
         if (res.data && res.data.user) {
           setUser(res.data.user);
         } else {
           setMessage("Failed to load profile");
         }
       } catch (err) {
-        console.error("Error loading profile:", err);
-        setMessage(
-          err.response?.data?.message || err.message || "Error loading profile"
-        );
+        console.error("[UserProfile] Error loading profile:", err);
+        console.error("[UserProfile] Response status:", err.response?.status);
+        console.error("[UserProfile] Response data:", err.response?.data);
+        
+        const errorMsg = err.response?.data?.message || err.message || "Error loading profile";
+        setMessage(`Error: ${errorMsg} (Status: ${err.response?.status || 'unknown'})`);
+        
+        // Don't let the global interceptor redirect - we'll show the error
+        if (err.response?.status === 401) {
+          setMessage("Authentication failed. Please sign in again.");
+        }
       } finally {
         setLoading(false);
       }
     };
-    // If there's no auth token, skip polling and fetches to avoid repeated
-    // unauthenticated requests that trigger redirect loops.
+
     if (!token) {
       setMessage("Please sign in to view profile");
       setLoading(false);
@@ -53,14 +60,13 @@ function UserProfile() {
     }
 
     fetchProfile();
-    // also fetch incoming requests for this user (owner)
+    
+    // Use rideApi for ride-related requests
     const fetchRequests = async () => {
       setLoadingRequests(true);
       setRequestsError("");
       try {
-        const r = await api.get("/user/requests", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const r = await rideApi.get("/user/requests");
         if (r.data && r.data.requests) setRequests(r.data.requests);
       } catch (err) {
         console.error("Error loading requests:", err);
@@ -76,17 +82,14 @@ function UserProfile() {
     fetchOutgoing();
     fetchAccepted();
 
-    // Simple polling fallback: refresh lists periodically so requester/owner
-    // see updates without requiring real-time sockets. Poll every 5s.
     const pollInterval = 5000;
     const pollId = setInterval(() => {
       try {
-        // only poll when we still have a token
         const currentToken =
           typeof window !== "undefined"
             ? localStorage.getItem("authToken")
             : null;
-        if (!currentToken) return; // skip if user signed out/redirected
+        if (!currentToken) return;
         fetchRequests();
         fetchOutgoing();
         fetchAccepted();
@@ -98,10 +101,8 @@ function UserProfile() {
     return () => clearInterval(pollId);
   }, [token]);
 
-  // Socket: listen for server notifications (chatCreated) to refresh lists
   const socketRef = useRef(null);
   useEffect(() => {
-    // only connect if we have a logged-in user
     const localUser =
       typeof window !== "undefined"
         ? JSON.parse(localStorage.getItem("user") || "null")
@@ -114,19 +115,16 @@ function UserProfile() {
       socketRef.current = socket;
 
       socket.on("connect", () => {
-        // join the user-specific room so server can notify this client
         try {
           socket.emit("joinUser", String(userId));
         } catch (e) {}
       });
 
       socket.on("chatCreated", (info) => {
-        // when a chat is created involving this user, refresh lists
         try {
           refreshRequests();
           fetchAccepted();
           fetchOutgoing();
-          // optional: show a short message
           setMessage("New chat created — lists refreshed");
         } catch (e) {
           console.error("Error refreshing after chatCreated:", e);
@@ -147,9 +145,7 @@ function UserProfile() {
     setLoadingOutgoing(true);
     setOutgoingError("");
     try {
-      const r = await api.get("/user/requests/outgoing", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const r = await rideApi.get("/user/requests/outgoing");
       if (r.data && r.data.requests) setOutgoingRequests(r.data.requests);
     } catch (err) {
       console.error("Error loading outgoing requests:", err);
@@ -167,9 +163,7 @@ function UserProfile() {
     setLoadingAccepted(true);
     setAcceptedError("");
     try {
-      const r = await api.get("/user/accepted", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const r = await rideApi.get("/user/accepted");
       if (r.data && r.data.requests) setAcceptedRequests(r.data.requests);
     } catch (err) {
       console.error("Error loading accepted requests:", err);
@@ -185,9 +179,7 @@ function UserProfile() {
 
   const refreshRequests = async () => {
     try {
-      const r = await api.get("/user/requests", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const r = await rideApi.get("/user/requests");
       if (r.data && r.data.requests) setRequests(r.data.requests);
     } catch (err) {
       console.error("Error refreshing requests:", err);
@@ -204,41 +196,12 @@ function UserProfile() {
       setMessage("Missing auth token. Please sign in again.");
       return;
     }
-    const doPatch = async () => {
-      console.log("Sending PATCH to backend", {
-        url: `/user/requests/${requestId}`,
-        status,
-      });
-      return api.patch(
-        `/user/requests/${requestId}`,
-        { status },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-    };
-
+    
     try {
-      let res;
-      try {
-        res = await doPatch();
-      } catch (err) {
-        // If there was no response at all (network/CORS), try one quick retry
-        if (err && err.request && !err.response) {
-          console.warn("No response on first attempt, retrying once...");
-          try {
-            res = await doPatch();
-          } catch (err2) {
-            // propagate the second error
-            throw err2;
-          }
-        } else {
-          // propagate non-network errors immediately
-          throw err;
-        }
-      }
-
-      console.log("PATCH response", res && res.status, res && res.data);
+      const res = await rideApi.patch(`/user/requests/${requestId}`, { status });
+      
+      console.log("PATCH response", res.status, res.data);
       if (res.data && res.data.request) {
-        // refresh list
         await refreshRequests();
         await fetchAccepted();
         setMessage(`Request ${status}`);
@@ -246,26 +209,16 @@ function UserProfile() {
         setMessage("Failed to update request");
       }
     } catch (err) {
-      // More detailed error handling so 'No response' becomes actionable
-      console.error("Error updating request (detailed):", err);
+      console.error("Error updating request:", err);
       let userMsg = "Network or server error while updating request.";
       if (err.response) {
-        // Server responded with a status code out of 2xx
         userMsg =
           err.response.data?.message || `Server error: ${err.response.status}`;
         console.error("Response data:", err.response.data);
       } else if (err.request) {
-        // Request was made but no response received
         userMsg =
           "No response from server. Possible CORS, network, or server crash.";
-        console.error(
-          "No response, request sent:",
-          err.request,
-          "code:",
-          err.code,
-          "message:",
-          err.message
-        );
+        console.error("No response:", err.request);
       } else if (err.message) {
         userMsg = err.message;
       }
@@ -289,12 +242,10 @@ function UserProfile() {
         course: user.course,
         department: user.department,
       };
-      const res = await api.put("/user/me", payload, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      // Use authApi for profile update
+      const res = await authApi.put("/user/me", payload);
       if (res.data && res.data.user) {
         setUser(res.data.user);
-        // Update local cached user if present
         try {
           localStorage.setItem("user", JSON.stringify(res.data.user));
         } catch (e) {}

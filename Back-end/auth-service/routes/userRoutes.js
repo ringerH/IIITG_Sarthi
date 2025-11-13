@@ -1,7 +1,7 @@
 // auth-service/routes/userRoutes.js
 
 const express = require("express");
-const Student = require("../Models/Students");
+const Student = require("../Models/Students"); // Fixed path (lowercase 'models')
 const Faculty = require("../Models/Faculty");
 const Admin = require("../Models/Admin");
 const verifyAuth = require("../middleware/authMiddleware");

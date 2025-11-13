@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import api from "../api/config";
+import { authApi } from "../api/config"; // Use authApi for profile
 
 export default function Home() {
   const navigate = useNavigate();
@@ -48,9 +48,8 @@ export default function Home() {
       setLoadingProfile(true);
       setProfileError("");
       try {
-        const res = await api.get("http://localhost:5002/api/user/me", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        // Use authApi instead of hardcoded URL
+        const res = await authApi.get("/user/me");
         if (res.data && res.data.user) {
           setProfile(res.data.user);
           
@@ -91,9 +90,8 @@ export default function Home() {
         course: profile.course,
         department: profile.department,
       };
-      const res = await api.put("/user/me", payload, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      // Use authApi for profile update
+      const res = await authApi.put("/user/me", payload);
       if (res.data && res.data.user) {
         setProfile(res.data.user);
         setStoredUser(res.data.user);
