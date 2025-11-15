@@ -1,77 +1,24 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
-// Import the EXISTING auth API from your project's config.js
-import { authApi } from '../api/config';
+import { listingService, authService } from './services/api';
+import { Listing, CreateListingData } from './types/listing.types';
 
-// --- API Service Definitions ---
-// We create a new axios instance just for the marketplace
-const marketplaceApi = axios.create({
-  baseURL: '/api/marketplace', // This will be caught by your Vite proxy
-});
+// Use _id to match MongoDB
+interface User {
+  id: string;
+  email: string;
+  name: string;
+}
 
-// We manually add the token interceptor logic here, since it's not exported
-marketplaceApi.interceptors.request.use(config => {
-  try {
-    const token =
-      typeof window !== "undefined"
-        ? localStorage.getItem("authToken")
-        : null;
-    if (token) {
-      config.headers = config.headers || {};
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-  } catch (e) {}
-  return config;
-}, error => {
-  return Promise.reject(error);
-});
-
-// Service definitions, adapted for your project
-const listingService = {
-  getAllListings: async () => {
-    const res = await marketplaceApi.get('/listings');
-    return res.data;
-  },
-  createListing: async (data) => {
-    const res = await marketplaceApi.post('/listings', data);
-    return res.data;
-  },
-  updateListing: async (id, data) => {
-    const res = await marketplaceApi.put(`/listings/${id}`, data);
-    return res.data;
-  },
-  deleteListing: async (id) => {
-    const res = await marketplaceApi.delete(`/listings/${id}`);
-    return res.data;
-  },
-};
-
-const authService = {
-  getProfile: async () => {
-    // Uses the EXISTING authApi from your project's config.js
-    const res = await authApi.get('/user/me');
-    return res.data.user; // Your auth service returns { success: true, user: ... }
-  },
-  setToken: (token) => {
-    localStorage.setItem('authToken', token);
-  },
-  logout: () => {
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('user');
-  }
-};
-// --- End of API Service Definitions ---
-
-
-function Marketplace() {
-  const [listings, setListings] = useState([]);
-  const [currentUser, setCurrentUser] = useState(null);
+function App() {
+  const [listings, setListings] = useState<Listing[]>([]);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   
+  // State for the *create* form
   const [showForm, setShowForm] = useState(false);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<CreateListingData>({
     title: '',
     description: '',
     price: 0,
@@ -85,8 +32,9 @@ function Marketplace() {
     }
   });
 
+  // --- State for the *edit* modal ---
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [editFormData, setEditFormData] = useState(null); // Changed to null
+  const [editFormData, setEditFormData] = useState<Partial<Listing>>({});
 
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -99,7 +47,7 @@ function Marketplace() {
         setCurrentUser(user);
       } catch (error) {
         console.error("Failed to fetch user profile", error);
-        // Don't auto-logout, the interceptor in config.js will handle 401s
+        authService.logout();
       }
     };
 
@@ -107,7 +55,7 @@ function Marketplace() {
     if (token) {
       console.log('Found token in URL. Saving to localStorage.');
       authService.setToken(token);
-      navigate('/marketplace', { replace: true }); // Navigate to the same page without token in URL
+      navigate('/', { replace: true });
       fetchUser();
     } else if (localStorage.getItem('authToken')) {
       fetchUser();
@@ -126,7 +74,7 @@ function Marketplace() {
       const data = await listingService.getAllListings();
       setListings(data);
       setError('');
-    } catch (err) { 
+    } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to fetch listings');
     } finally {
       setLoading(false);
@@ -134,12 +82,8 @@ function Marketplace() {
   };
 
   // --- CREATE FORM HANDLERS ---
-  const handleSubmit = async (e) => { 
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!currentUser) {
-        alert("Please log in to create a listing.");
-        return;
-    }
     try {
       await listingService.createListing(formData);
       alert('Listing created successfully!');
@@ -156,12 +100,12 @@ function Marketplace() {
         images: [],
         contactInfo: { phone: '', room: '', hostel: '' }
       });
-    } catch (err) { 
+    } catch (err: any) {
       alert(err.response?.data?.message || 'Failed to create listing');
     }
   };
 
-  const handleInputChange = (e) => { 
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     if (name.startsWith('contact.')) {
       const contactField = name.split('.')[1];
@@ -181,7 +125,7 @@ function Marketplace() {
   };
 
   // --- DELETE HANDLER ---
-  const handleDelete = async (listingId) => { 
+  const handleDelete = async (listingId: string) => {
     if (!window.confirm("Are you sure you want to delete this listing?")) {
       return;
     }
@@ -189,18 +133,18 @@ function Marketplace() {
       await listingService.deleteListing(listingId);
       setListings(prev => prev.filter(l => l._id !== listingId));
       alert("Listing deleted!");
-    } catch (err) { 
+    } catch (err: any) {
       alert(err.response?.data?.message || 'Failed to delete listing');
     }
   };
 
   // --- EDIT HANDLERS ---
-  const handleEditClick = (listing) => { 
+  const handleEditClick = (listing: Listing) => {
     setEditFormData(listing);
     setIsEditModalOpen(true);
   };
 
-  const handleEditInputChange = (e) => { 
+  const handleEditInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     
     if (name.startsWith('contact.')) {
@@ -208,7 +152,7 @@ function Marketplace() {
       setEditFormData(prev => ({
         ...prev,
         contactInfo: {
-          ...prev.contactInfo,
+          ...prev!.contactInfo,
           [contactField]: value
         }
       }));
@@ -220,13 +164,13 @@ function Marketplace() {
     }
   };
 
-  const handleEditSubmit = async (e) => { 
+  const handleEditSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editFormData || !editFormData._id) return;
 
     try {
       const { _id, createdBy, ...updateData } = editFormData;
-      const updatedListing = await listingService.updateListing(_id, updateData);
+      const updatedListing = await listingService.updateListing(_id, updateData as CreateListingData);
       
       setListings(prev => 
         prev.map(l => (l._id === updatedListing._id ? updatedListing : l))
@@ -234,7 +178,7 @@ function Marketplace() {
       
       setIsEditModalOpen(false);
       alert("Listing updated successfully!");
-    } catch (err) { 
+    } catch (err: any) {
       alert(err.response?.data?.message || 'Failed to update listing');
     }
   };
@@ -247,7 +191,7 @@ function Marketplace() {
         <div className="max-w-7xl mx-auto px-4 py-6">
           <h1 className="text-3xl font-bold">Campus Marketplace</h1>
           {currentUser ? (
-              <p className="text-blue-100 mt-1">Logged in as: {currentUser.email}</p>
+             <p className="text-blue-100 mt-1">Logged in as: {currentUser.email}</p>
           ) : (
             <p className="text-blue-100 mt-1">Buy and sell items on campus</p>
           )}
@@ -261,17 +205,15 @@ function Marketplace() {
           <h2 className="text-2xl font-semibold text-gray-800">
             Available Items ({listings.length})
           </h2>
-          {currentUser && (
-            <button
-                onClick={() => setShowForm(!showForm)}
-                className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-medium transition"
-            >
-                {showForm ? 'Cancel' : '+ Create Listing'}
-            </button>
-          )}
+          <button
+            onClick={() => setShowForm(!showForm)}
+            className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-medium transition"
+          >
+            {showForm ? 'Cancel' : '+ Create Listing'}
+          </button>
         </div>
 
-        {/* --- CREATE LISTING FORM --- */}
+        {/* --- CREATE LISTING FORM (RESTORED) --- */}
         {showForm && (
           <div className="bg-white rounded-lg shadow-md p-6 mb-8">
             <h3 className="text-xl font-semibold mb-4">Create New Listing</h3>
@@ -451,32 +393,33 @@ function Marketplace() {
                       ₹{listing.price}
                     </span>
                   </div>
-                  {listing.contactInfo?.hostel && (
+                  {listing.contactInfo.hostel && (
                     <p className="text-xs text-gray-500 mt-2">
                       🏢 {listing.contactInfo.hostel} {listing.contactInfo.room && `- Room ${listing.contactInfo.room}`}
                     </p>
                   )}
                 <p className="text-xs text-gray-400 mt-2">
-                  Posted by: 
-                  {listing.createdBy && listing.createdBy.email ? (
-                    <a 
-                      href={`mailto:${listing.createdBy.email}?subject=Inquiry about your listing: ${listing.title}`}
-                      className="text-blue-500 hover:text-blue-600 hover:underline ml-1"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      {listing.createdBy.name || listing.createdBy.email}
-                    </a>
-                  ) : (
-                    <span className="ml-1">
-                      {listing.createdBy?.name || 'Seller'}
-                    </span>
-                  )}
-                </p>
+                    Posted by: 
+                    {listing.createdBy && listing.createdBy.email ? (
+                      // --- If seller email exists, render the clickable link ---
+                      <a 
+                        href={`mailto:${listing.createdBy.email}?subject=Inquiry about your listing: ${listing.title}`}
+                        className="text-blue-500 hover:text-blue-600 hover:underline ml-1"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        {listing.createdBy.name || listing.createdBy.email}
+                      </a>
+                    ) : (
+                      // --- Otherwise, just display the name as plain text ---
+                      <span className="ml-1">
+                        {listing.createdBy?.name || 'Seller'}
+                      </span>
+                    )}
+                  </p>
                 </div>
                 
                 {/* --- CONDITIONAL EDIT/DELETE BUTTONS --- */}
-                {/* I've updated this to use ._id which is correct for MongoDB/Mongoose */}
-                {currentUser && listing.createdBy && currentUser._id === listing.createdBy._id && (
+                {currentUser && listing.createdBy && currentUser.id === listing.createdBy._id && (
                 <div className="mt-4 pt-4 border-t border-gray-200 flex space-x-2">
                   <button
                     onClick={() => handleEditClick(listing)}
@@ -638,4 +581,4 @@ function Marketplace() {
   );
 }
 
-export default Marketplace;
+export default App;
