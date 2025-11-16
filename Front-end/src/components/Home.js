@@ -127,7 +127,6 @@ export default function Home() {
       description:
         "Lost something on campus? Post or browse items here — quick and secure.",
       img: "/banner2.jpg",
-      // WhatsApp group invite link - clicking this card will open the group
       link: "https://chat.whatsapp.com/Hr0Ahu1ViB5FnYFpHYSyFG?mode=wwt",
     },
     {
@@ -136,6 +135,7 @@ export default function Home() {
       description:
         "Check out the students' Gymkhana",
       img: "/banner3.jpg",
+      link: "https://www.iiitg.ac.in/student-gymkhana"
     },
   ];
 

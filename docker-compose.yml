@@ -1,0 +1,81 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:7
+    container_name: campus_mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - campus-network
+
+  auth-service:
+    build: ./Back-end/auth-service
+    container_name: campus_auth
+    ports:
+      - "5001:5001"
+    environment:
+      - PORT=5001
+      - MONGO_URI=mongodb://mongodb:27017/campus_hub
+      - JWT_SECRET=${JWT_SECRET}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+    depends_on:
+      - mongodb
+    networks:
+      - campus-network
+    restart: unless-stopped
+
+  ride-service:
+    build: ./Back-end/ride-service
+    container_name: campus_ride
+    ports:
+      - "5003:5003"
+    environment:
+      - PORT=5003
+      - MONGO_URI=mongodb://mongodb:27017/campus_hub
+      - JWT_SECRET=${JWT_SECRET}
+    depends_on:
+      - mongodb
+    networks:
+      - campus-network
+    restart: unless-stopped
+
+  marketplace-service:
+    build: ./Back-end/marketplace-service
+    container_name: campus_marketplace
+    ports:
+      - "5000:5000"
+    environment:
+      - PORT=5000
+      - MONGO_URI=mongodb://mongodb:27017/campus_hub
+      - JWT_SECRET=${JWT_SECRET}
+    depends_on:
+      - mongodb
+    networks:
+      - campus-network
+    restart: unless-stopped
+
+  frontend:
+    build: ./Front-end
+    container_name: campus_frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - VITE_API_BASE_URL=http://localhost:5001
+      - VITE_GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+    depends_on:
+      - auth-service
+      - ride-service
+      - marketplace-service
+    networks:
+      - campus-network
+    restart: unless-stopped
+
+volumes:
+  mongo-data:
+
+networks:
+  campus-network:
+    driver: bridge

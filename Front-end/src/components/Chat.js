@@ -2,16 +2,16 @@ import React, { useEffect, useState, useRef } from "react";
 import { useParams } from "react-router-dom";
 import api from "../api/config";
 import { io } from "socket.io-client";
-import "../styles/Chat.css"; // Import the new CSS file
-import "../App.css"; // For .btn, .page-action, etc.
+import "../styles/chat.css"; 
+import "../App.css"; 
 
 export default function Chat() {
   const { id } = useParams();
   const [chat, setChat] = useState(null);
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState("");
-  const [loading, setLoading] = useState(true); // Added loading state
-  const [error, setError] = useState(null); // Added error state
+  const [loading, setLoading] = useState(true); 
+  const [error, setError] = useState(null); 
   const socketRef = useRef(null);
   const bottomRef = useRef(null);
 

@@ -2,9 +2,9 @@ const express = require("express");
 const axios = require("axios");
 const jwt = require("jsonwebtoken");
 
-const Student = require("../Models/Students");
-const Faculty = require("../Models/Faculty");
-const Admin = require("../Models/Admin");
+const Student = require("../models/Students");
+const Faculty = require("../models/Faculty");
+const Admin = require("../models/Admin");
 
 const router = express.Router();
 
