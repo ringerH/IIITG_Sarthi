@@ -1,16 +1,15 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-// Import the EXISTING auth API from your project's config.js
+
 import { authApi } from '../api/config';
 
-// --- API Service Definitions ---
-// We create a new axios instance just for the marketplace
+import '../styles/marketplace.css'; 
+
 const marketplaceApi = axios.create({
-  baseURL: '/api/marketplace', // This will be caught by your Vite proxy
+  baseURL: '/api/marketplace', 
 });
 
-// We manually add the token interceptor logic here, since it's not exported
 marketplaceApi.interceptors.request.use(config => {
   try {
     const token =
@@ -27,11 +26,10 @@ marketplaceApi.interceptors.request.use(config => {
   return Promise.reject(error);
 });
 
-// Service definitions, adapted for your project
 const listingService = {
   getAllListings: async () => {
     const res = await marketplaceApi.get('/listings');
-    return res.data;
+    return res.data.listings;
   },
   createListing: async (data) => {
     const res = await marketplaceApi.post('/listings', data);
@@ -49,9 +47,8 @@ const listingService = {
 
 const authService = {
   getProfile: async () => {
-    // Uses the EXISTING authApi from your project's config.js
     const res = await authApi.get('/user/me');
-    return res.data.user; // Your auth service returns { success: true, user: ... }
+    return res.data.user;
   },
   setToken: (token) => {
     localStorage.setItem('authToken', token);
@@ -61,7 +58,7 @@ const authService = {
     localStorage.removeItem('user');
   }
 };
-// --- End of API Service Definitions ---
+
 
 
 function Marketplace() {
@@ -86,12 +83,11 @@ function Marketplace() {
   });
 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [editFormData, setEditFormData] = useState(null); // Changed to null
+  const [editFormData, setEditFormData] = useState(null); 
 
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
-  // Effect to fetch user profile
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -99,22 +95,19 @@ function Marketplace() {
         setCurrentUser(user);
       } catch (error) {
         console.error("Failed to fetch user profile", error);
-        // Don't auto-logout, the interceptor in config.js will handle 401s
       }
     };
 
     const token = searchParams.get('token');
     if (token) {
-      console.log('Found token in URL. Saving to localStorage.');
       authService.setToken(token);
-      navigate('/marketplace', { replace: true }); // Navigate to the same page without token in URL
+      navigate('/marketplace', { replace: true }); 
       fetchUser();
     } else if (localStorage.getItem('authToken')) {
       fetchUser();
     }
   }, [searchParams, navigate]);
   
-  // Effect to fetch listings on load
   useEffect(() => {
     fetchListings();
   }, []);
@@ -226,10 +219,10 @@ function Marketplace() {
 
     try {
       const { _id, createdBy, ...updateData } = editFormData;
-      const updatedListing = await listingService.updateListing(_id, updateData);
+      const response = await listingService.updateListing(_id, updateData);
       
       setListings(prev => 
-        prev.map(l => (l._id === updatedListing._id ? updatedListing : l))
+        prev.map(l => (l._id === response.listing._id ? response.listing : l))
       );
       
       setIsEditModalOpen(false);
@@ -241,30 +234,28 @@ function Marketplace() {
 
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="mp-container">
       {/* Header */}
-      <header className="bg-blue-600 text-white shadow-md">
-        <div className="max-w-7xl mx-auto px-4 py-6">
-          <h1 className="text-3xl font-bold">Campus Marketplace</h1>
-          {currentUser ? (
-              <p className="text-blue-100 mt-1">Logged in as: {currentUser.email}</p>
-          ) : (
-            <p className="text-blue-100 mt-1">Buy and sell items on campus</p>
-          )}
+      <header className="mp-header">
+        <div className="mp-header-content">
+          <h1 className="mp-header-title">Campus Marketplace</h1>
+          {currentUser ? 
+          (<p className="mp-header-subtitle">Logged in as: {currentUser.email}</p> ) : 
+              ( <p className="mp-header-subtitle">Buy and sell items on campus</p>)}
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 py-8">
+      <main className="mp-main-content">
         {/* Action Bar */}
-        <div className="mb-6 flex justify-between items-center">
-          <h2 className="text-2xl font-semibold text-gray-800">
+        <div className="mp-action-bar">
+          <h2 className="mp-section-title">
             Available Items ({listings.length})
           </h2>
           {currentUser && (
             <button
                 onClick={() => setShowForm(!showForm)}
-                className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-medium transition"
+                className="mp-button mp-button-create"
             >
                 {showForm ? 'Cancel' : '+ Create Listing'}
             </button>
@@ -273,36 +264,36 @@ function Marketplace() {
 
         {/* --- CREATE LISTING FORM --- */}
         {showForm && (
-          <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-            <h3 className="text-xl font-semibold mb-4">Create New Listing</h3>
-            <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="mp-form-container">
+            <h3 className="mp-form-title">Create New Listing</h3>
+            <form onSubmit={handleSubmit} className="mp-form">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                <label className="mp-label">Title</label>
                 <input
                   type="text"
                   name="title"
                   value={formData.title}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="mp-input"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                <label className="mp-label">Description</label>
                 <textarea
                   name="description"
                   value={formData.description}
                   onChange={handleInputChange}
                   required
                   rows={3}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="mp-input"
                 />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="mp-grid-3">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Price (₹)</label>
+                  <label className="mp-label">Price (₹)</label>
                   <input
                     type="number"
                     name="price"
@@ -310,17 +301,17 @@ function Marketplace() {
                     onChange={handleInputChange}
                     required
                     min="0"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="mp-input"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                  <label className="mp-label">Category</label>
                   <select
                     name="category"
                     value={formData.category}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="mp-input"
                   >
                     <option value="electronics">Electronics</option>
                     <option value="books">Books</option>
@@ -333,12 +324,12 @@ function Marketplace() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Condition</label>
+                  <label className="mp-label">Condition</label>
                   <select
                     name="condition"
                     value={formData.condition}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="mp-input"
                   >
                     <option value="new">New</option>
                     <option value="like-new">Like New</option>
@@ -349,44 +340,44 @@ function Marketplace() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="mp-grid-3">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                  <label className="mp-label">Phone (Optional)</label>
                   <input
                     type="tel"
                     name="contact.phone"
                     value={formData.contactInfo.phone}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="mp-input"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Room</label>
+                  <label className="mp-label">Room (Optional)</label>
                   <input
                     type="text"
                     name="contact.room"
                     value={formData.contactInfo.room}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="mp-input"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Hostel</label>
+                  <label className="mp-label">Hostel (Optional)</label>
                   <input
                     type="text"
                     name="contact.hostel"
                     value={formData.contactInfo.hostel}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="mp-input"
                   />
                 </div>
               </div>
 
               <button
                 type="submit"
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-medium transition"
+                className="mp-button mp-button-submit"
               >
                 Create Listing
               </button>
@@ -396,100 +387,97 @@ function Marketplace() {
 
         {/* Error Message */}
         {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
+          <div className="mp-error-message">
             {error}
           </div>
         )}
 
         {/* Loading State */}
         {loading && (
-          <div className="text-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading listings...</p>
+          <div className="mp-loading-state">
+            <div className="mp-spinner"></div>
+            <p>Loading listings...</p>
           </div>
         )}
 
         {/* Listings Grid */}
         {!loading && listings.length === 0 && (
-          <div className="text-center py-12 bg-white rounded-lg shadow">
-            <p className="text-gray-500 text-lg">No listings found. Create the first one!</p>
+          <div className="mp-no-listings">
+            <p>No listings found. Create the first one!</p>
           </div>
         )}
 
         {!loading && listings.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="mp-grid-3">
             {listings.map((listing) => (
               <div
                 key={listing._id}
-                className="bg-white rounded-lg shadow-md hover:shadow-lg transition p-5 flex flex-col justify-between"
+                className="mp-card"
               >
-                {/* Top part of the card */}
                 <div>
-                  <div className="flex justify-between items-start mb-3">
-                    <h3 className="text-lg font-semibold text-gray-800">{listing.title}</h3>
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                  <div className="mp-card-header">
+                    <h3 className="mp-card-title">{listing.title}</h3>
+                    <span className={`mp-card-status ${
                       listing.status === 'available' 
-                        ? 'bg-green-100 text-green-800' 
-                        : 'bg-gray-100 text-gray-800'
+                        ? 'mp-status-available' 
+                        : 'mp-status-sold'
                     }`}>
                       {listing.status}
                     </span>
                   </div>
-                  <p className="text-gray-600 text-sm mb-3 line-clamp-2">
+                  
+                  <p className="mp-card-description">
                     {listing.description}
                   </p>
-                  <div className="flex items-center gap-2 mb-3">
-                    <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
+                  
+                  <div className="mp-card-tags">
+                    <span className="mp-card-tag-category">
                       {listing.category}
                     </span>
-                    <span className="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded">
+                    <span className="mp-card-tag-condition">
                       {listing.condition}
                     </span>
                   </div>
-                  <div className="flex justify-between items-center pt-3 border-t border-gray-200">
-                    <span className="text-2xl font-bold text-green-600">
+                  
+                  <div className="mp-card-price-row">
+                    <span className="mp-card-price">
                       ₹{listing.price}
                     </span>
                   </div>
-                  {listing.contactInfo?.hostel && (
-                    <p className="text-xs text-gray-500 mt-2">
-                      🏢 {listing.contactInfo.hostel} {listing.contactInfo.room && `- Room ${listing.contactInfo.room}`}
-                    </p>
-                  )}
-                <p className="text-xs text-gray-400 mt-2">
-                  Posted by: 
-                  {listing.createdBy && listing.createdBy.email ? (
-                    <a 
-                      href={`mailto:${listing.createdBy.email}?subject=Inquiry about your listing: ${listing.title}`}
-                      className="text-blue-500 hover:text-blue-600 hover:underline ml-1"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      {listing.createdBy.name || listing.createdBy.email}
-                    </a>
-                  ) : (
-                    <span className="ml-1">
-                      {listing.createdBy?.name || 'Seller'}
-                    </span>
-                  )}
-                </p>
+                  
+                  <p className="mp-card-posted-by">
+                    Posted by: {listing.createdBy?.name || 'Seller'}
+                  </p>
                 </div>
                 
-                {/* --- CONDITIONAL EDIT/DELETE BUTTONS --- */}
-                {/* I've updated this to use ._id which is correct for MongoDB/Mongoose */}
+                {/* Contact Seller Button - Only for logged-in users who aren't the owner */}
+                {currentUser && listing.createdBy && currentUser._id !== listing.createdBy._id && listing.status === 'available' && (
+                  <div className="mp-card-actions">
+                    <a
+                      href={`mailto:${listing.createdBy.email}?subject=Inquiry about: ${listing.title}&body=Hi ${listing.createdBy.name},%0D%0A%0D%0AI'm interested in your listing "${listing.title}" priced at ₹${listing.price}.%0D%0A%0D%0APlease let me know if it's still available.%0D%0A%0D%0AThank you!`}
+                      className="mp-button mp-button-contact"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      📧 Contact Seller
+                    </a>
+                  </div>
+                )}
+                
+                {/* Edit/Delete Buttons - Only for the owner */}
                 {currentUser && listing.createdBy && currentUser._id === listing.createdBy._id && (
-                <div className="mt-4 pt-4 border-t border-gray-200 flex space-x-2">
-                  <button
-                    onClick={() => handleEditClick(listing)}
-                    className="text-sm bg-blue-500 hover:bg-blue-600 text-white py-1 px-3 rounded"
-                  >
-                  Edit
-                  </button>
-                  <button
-                    onClick={() => handleDelete(listing._id)}
-                    className="text-sm bg-red-500 hover:bg-red-600 text-white py-1 px-3 rounded"
-                  >
-                  Delete
-                  </button>
+                  <div className="mp-card-actions">
+                    <button
+                      onClick={() => handleEditClick(listing)}
+                      className="mp-button mp-button-edit"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleDelete(listing._id)}
+                      className="mp-button mp-button-delete"
+                    >
+                      Delete
+                    </button>
                   </div>
                 )}
               </div>
@@ -501,51 +489,51 @@ function Marketplace() {
       {/* --- EDIT LISTING MODAL --- */}
       {isEditModalOpen && editFormData && (
         <div 
-          className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50"
+          className="mp-modal-backdrop"
           onClick={() => setIsEditModalOpen(false)}
         >
           <div 
-            className="bg-white rounded-lg shadow-xl p-6 mb-8 w-full max-w-2xl"
+            className="mp-modal-content"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-semibold">Edit Listing</h3>
+            <div className="mp-modal-header">
+              <h3 className="mp-form-title">Edit Listing</h3>
               <button 
                 onClick={() => setIsEditModalOpen(false)}
-                className="text-gray-500 hover:text-gray-800 text-2xl"
+                className="mp-modal-close-btn"
               >
                 &times;
               </button>
             </div>
             
-            <form onSubmit={handleEditSubmit} className="space-y-4">
+            <form onSubmit={handleEditSubmit} className="mp-form">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                <label className="mp-label">Title</label>
                 <input
                   type="text"
                   name="title"
                   value={editFormData.title || ''}
                   onChange={handleEditInputChange}
                   required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="mp-input"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                <label className="mp-label">Description</label>
                 <textarea
                   name="description"
                   value={editFormData.description || ''}
                   onChange={handleEditInputChange}
                   required
                   rows={3}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="mp-input"
                 />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="mp-grid-3">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Price (₹)</label>
+                  <label className="mp-label">Price (₹)</label>
                   <input
                     type="number"
                     name="price"
@@ -553,16 +541,16 @@ function Marketplace() {
                     onChange={handleEditInputChange}
                     required
                     min="0"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="mp-input"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                  <label className="mp-label">Category</label>
                   <select
                     name="category"
                     value={editFormData.category || 'other'}
                     onChange={handleEditInputChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="mp-input"
                   >
                     <option value="electronics">Electronics</option>
                     <option value="books">Books</option>
@@ -574,12 +562,12 @@ function Marketplace() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Condition</label>
+                  <label className="mp-label">Condition</label>
                   <select
                     name="condition"
                     value={editFormData.condition || 'good'}
                     onChange={handleEditInputChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="mp-input"
                   >
                     <option value="new">New</option>
                     <option value="like-new">Like New</option>
@@ -590,42 +578,56 @@ function Marketplace() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="mp-label">Status</label>
+                <select
+                  name="status"
+                  value={editFormData.status || 'available'}
+                  onChange={handleEditInputChange}
+                  className="mp-input"
+                >
+                  <option value="available">Available</option>
+                  <option value="sold">Sold</option>
+                  <option value="reserved">Reserved</option>
+                </select>
+              </div>
+
+              <div className="mp-grid-3">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                  <label className="mp-label">Phone (Optional)</label>
                   <input
                     type="tel"
                     name="contact.phone"
                     value={editFormData.contactInfo?.phone || ''}
                     onChange={handleEditInputChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="mp-input"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Room</label>
+                  <label className="mp-label">Room (Optional)</label>
                   <input
                     type="text"
                     name="contact.room"
                     value={editFormData.contactInfo?.room || ''}
                     onChange={handleEditInputChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="mp-input"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Hostel</label>
+                  <label className="mp-label">Hostel (Optional)</label>
                   <input
                     type="text"
                     name="contact.hostel"
                     value={editFormData.contactInfo?.hostel || ''}
                     onChange={handleEditInputChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="mp-input"
                   />
                 </div>
               </div>
 
               <button
                 type="submit"
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-medium transition"
+                className="mp-button mp-button-submit"
               >
                 Save Changes
               </button>

@@ -11,7 +11,7 @@ const RideList = () => {
     const fetchRides = async () => {
       try {
         console.log("Fetching ride data...");
-        const response = await axios.get("http://localhost:5001/api/rides", {
+        const response = await axios.get("http://localhost:5003/api/rides", {
           headers: {
             "Content-Type": "application/json",
           },

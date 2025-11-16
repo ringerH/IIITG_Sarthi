@@ -1,16 +1,14 @@
-// This is your new ride-service/server.js
 require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const rideRoutes = require("./Routes/rideRoutes");
-// const authRoutes = require("../Routes/authRoutes"); // ⬅️ REMOVE THIS
-const userRoutes = require("./Routes/userRoutes"); // ⬅️ This file will also need changes
+const userRoutes = require("./Routes/userRoutes");
 
 const app = express();
 const http = require("http");
 const { Server } = require("socket.io");
-const PORT = process.env.PORT || 5001; // This service can stay on 5001
+const PORT = process.env.PORT || 5001; 
 
 const DEFAULT_FRONTEND_ORIGINS = [
   "http://localhost:5173",

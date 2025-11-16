@@ -6,7 +6,6 @@ const authMiddleware = require('../middleware/authMiddleware');
 // All routes require authentication
 router.use(authMiddleware);
 
-router.put('/:id', authMiddleware, listingController.updateListing);
 // Create a new listing
 router.post('/', listingController.createListing);
 
@@ -24,7 +23,7 @@ router.put('/:id', listingController.updateListing);
 
 // Delete a listing
 router.delete('/:id', listingController.deleteListing);
-router.delete('/:id', authMiddleware, listingController.deleteListing);
+
 // Mark listing as sold
 router.patch('/:id/sold', listingController.markAsSold);
 

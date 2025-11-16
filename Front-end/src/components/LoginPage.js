@@ -6,7 +6,7 @@ import "../App.css";
 // Get Google Client ID from environment variables
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:5002";
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:5001";
 
 function LoginPage() {
   const [error, setError] = useState("");

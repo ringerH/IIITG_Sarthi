@@ -2,7 +2,7 @@ import axios from "axios";
 
 // Ride service API (port 5001)
 const rideApi = axios.create({
-  baseURL: "http://localhost:5001/api",
+  baseURL: "http://localhost:5003/api",
   headers: {
     "Content-Type": "application/json",
     Accept: "application/json",
@@ -13,7 +13,7 @@ const rideApi = axios.create({
 
 // Auth service API (port 5002)
 const authApi = axios.create({
-  baseURL: "http://localhost:5002/api",
+  baseURL: "http://localhost:5001/api",
   headers: {
     "Content-Type": "application/json",
     Accept: "application/json",

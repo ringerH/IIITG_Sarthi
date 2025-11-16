@@ -111,7 +111,7 @@ function UserProfile() {
     if (!userId) return;
 
     try {
-      const socket = io("http://localhost:5001", { withCredentials: true });
+      const socket = io("http://localhost:5003", { withCredentials: true });
       socketRef.current = socket;
 
       socket.on("connect", () => {
