@@ -1,0 +1,239 @@
+{
+	"id": "7e98f99a-70ba-4c4c-99e7-a1b560118b8f",
+	"name": "Sarthi API",
+	"timestamp": "2025-11-16T12:43:00.110Z",
+	"collection_id": "43581181-be1b8ae1-5504-4311-a851-16658f25b5da",
+	"folder_id": 0,
+	"environment_id": "43581181-a3ffb743-2809-4dfe-8341-5a3e866e9abf",
+	"totalPass": 6,
+	"delay": 0,
+	"persist": true,
+	"status": "finished",
+	"startedAt": "2025-11-16T12:42:55.911Z",
+	"totalFail": 1,
+	"results": [
+		{
+			"id": "74e991f1-e8f2-49ae-815f-2c8c3678fd1e",
+			"name": "Google Login (Manual)",
+			"url": "http://localhost:5001/api/auth/google",
+			"time": 1139,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Login successful": false
+			},
+			"testPassFailCounts": {
+				"Login successful": {
+					"pass": 0,
+					"fail": 1
+				}
+			},
+			"times": [
+				1139
+			],
+			"allTests": [
+				{
+					"Login successful": false
+				}
+			]
+		},
+		{
+			"id": "544a8f4a-6f64-4b74-88c5-dc403f56832f",
+			"name": "Get Profile",
+			"url": "http://localhost:5001/api/user/me",
+			"time": 113,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Profile retrieved": true
+			},
+			"testPassFailCounts": {
+				"Profile retrieved": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				113
+			],
+			"allTests": [
+				{
+					"Profile retrieved": true
+				}
+			]
+		},
+		{
+			"id": "a072a241-008c-4dfb-9533-15d5dd91e240",
+			"name": "Update Profile",
+			"url": "http://localhost:5001/api/user/me",
+			"time": 235,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Profile updated": true
+			},
+			"testPassFailCounts": {
+				"Profile updated": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				235
+			],
+			"allTests": [
+				{
+					"Profile updated": true
+				}
+			]
+		},
+		{
+			"id": "c87221e2-5cd3-46c8-a786-4f8df836af65",
+			"name": "Create Ride",
+			"url": "http://localhost:5003/api/rides",
+			"time": 540,
+			"responseCode": {
+				"code": 201,
+				"name": "Created"
+			},
+			"tests": {
+				"Ride created": true
+			},
+			"testPassFailCounts": {
+				"Ride created": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				540
+			],
+			"allTests": [
+				{
+					"Ride created": true
+				}
+			]
+		},
+		{
+			"id": "9a709941-ff41-4049-94df-d5af7d4538c0",
+			"name": "Get All Rides",
+			"url": "http://localhost:5003/api/rides",
+			"time": 132,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Rides retrieved": true
+			},
+			"testPassFailCounts": {
+				"Rides retrieved": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				132
+			],
+			"allTests": [
+				{
+					"Rides retrieved": true
+				}
+			]
+		},
+		{
+			"id": "dcd39c76-a811-46a5-a4ff-91b48a6eec33",
+			"name": "Create Listing",
+			"url": "http://localhost:5002/api/listings",
+			"time": 102,
+			"responseCode": {
+				"code": 201,
+				"name": "Created"
+			},
+			"tests": {
+				"Listing created": true
+			},
+			"testPassFailCounts": {
+				"Listing created": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				102
+			],
+			"allTests": [
+				{
+					"Listing created": true
+				}
+			]
+		},
+		{
+			"id": "83d362f6-1c53-470c-96a1-d0220715d81a",
+			"name": "Get All Listings",
+			"url": "http://localhost:5002/api/listings",
+			"time": 32,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Listings retrieved": true
+			},
+			"testPassFailCounts": {
+				"Listings retrieved": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				32
+			],
+			"allTests": [
+				{
+					"Listings retrieved": true
+				}
+			]
+		}
+	],
+	"count": 1,
+	"totalTime": 2293,
+	"collection": {
+		"requests": [
+			{
+				"id": "74e991f1-e8f2-49ae-815f-2c8c3678fd1e",
+				"method": "POST"
+			},
+			{
+				"id": "544a8f4a-6f64-4b74-88c5-dc403f56832f",
+				"method": "GET"
+			},
+			{
+				"id": "a072a241-008c-4dfb-9533-15d5dd91e240",
+				"method": "PUT"
+			},
+			{
+				"id": "c87221e2-5cd3-46c8-a786-4f8df836af65",
+				"method": "POST"
+			},
+			{
+				"id": "9a709941-ff41-4049-94df-d5af7d4538c0",
+				"method": "GET"
+			},
+			{
+				"id": "dcd39c76-a811-46a5-a4ff-91b48a6eec33",
+				"method": "POST"
+			},
+			{
+				"id": "83d362f6-1c53-470c-96a1-d0220715d81a",
+				"method": "GET"
+			}
+		]
+	}
+}

@@ -1,0 +1,239 @@
+{
+    "info": {
+      "name": "IIITG Campus Hub API Tests",
+      "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+      {
+        "name": "Auth Service",
+        "item": [
+          {
+            "name": "Google Login (Manual)",
+            "request": {
+              "method": "POST",
+              "header": [{"key": "Content-Type", "value": "application/json"}],
+              "body": {
+                "mode": "raw",
+                "raw": "{\n  \"tokenId\": \"YOUR_GOOGLE_TOKEN_HERE\",\n  \"role\": \"student\"\n}"
+              },
+              "url": {
+                "raw": "{{AUTH_URL}}/api/auth/google",
+                "host": ["{{AUTH_URL}}"],
+                "path": ["api", "auth", "google"]
+              }
+            },
+            "event": [
+              {
+                "listen": "test",
+                "script": {
+                  "exec": [
+                    "pm.test('Login successful', function() {",
+                    "    pm.response.to.have.status(200);",
+                    "    const json = pm.response.json();",
+                    "    pm.expect(json.success).to.be.true;",
+                    "    pm.expect(json.token).to.exist;",
+                    "    pm.environment.set('TOKEN', json.token);",
+                    "    pm.environment.set('USER_ID', json.user._id);",
+                    "});"
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "name": "Get Profile",
+            "request": {
+              "method": "GET",
+              "header": [
+                {"key": "Authorization", "value": "Bearer {{TOKEN}}"}
+              ],
+              "url": {
+                "raw": "{{AUTH_URL}}/api/user/me",
+                "host": ["{{AUTH_URL}}"],
+                "path": ["api", "user", "me"]
+              }
+            },
+            "event": [
+              {
+                "listen": "test",
+                "script": {
+                  "exec": [
+                    "pm.test('Profile retrieved', function() {",
+                    "    pm.response.to.have.status(200);",
+                    "    const json = pm.response.json();",
+                    "    pm.expect(json.user.email).to.exist;",
+                    "});"
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "name": "Update Profile",
+            "request": {
+              "method": "PUT",
+              "header": [
+                {"key": "Authorization", "value": "Bearer {{TOKEN}}"},
+                {"key": "Content-Type", "value": "application/json"}
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\n  \"fullName\": \"Test User\",\n  \"rollNumber\": \"2021001\",\n  \"department\": \"CSE\"\n}"
+              },
+              "url": {
+                "raw": "{{AUTH_URL}}/api/user/me",
+                "host": ["{{AUTH_URL}}"],
+                "path": ["api", "user", "me"]
+              }
+            },
+            "event": [
+              {
+                "listen": "test",
+                "script": {
+                  "exec": [
+                    "pm.test('Profile updated', function() {",
+                    "    pm.response.to.have.status(200);",
+                    "    const json = pm.response.json();",
+                    "    pm.expect(json.user.fullName).to.equal('Test User');",
+                    "});"
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "Ride Service",
+        "item": [
+          {
+            "name": "Create Ride",
+            "request": {
+              "method": "POST",
+              "header": [
+                {"key": "Authorization", "value": "Bearer {{TOKEN}}"},
+                {"key": "Content-Type", "value": "application/json"}
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\n  \"rideTitle\": \"Test Ride to Airport\",\n  \"pickupLocation\": \"IIITG Campus\",\n  \"dropoffLocation\": \"Guwahati Airport\",\n  \"availableSeats\": 3,\n  \"rideDate\": \"2025-11-20T10:00:00Z\",\n  \"description\": \"Sharing ride to airport\"\n}"
+              },
+              "url": {
+                "raw": "{{RIDE_URL}}/api/rides",
+                "host": ["{{RIDE_URL}}"],
+                "path": ["api", "rides"]
+              }
+            },
+            "event": [
+              {
+                "listen": "test",
+                "script": {
+                  "exec": [
+                    "pm.test('Ride created', function() {",
+                    "    pm.response.to.have.status(201);",
+                    "    const json = pm.response.json();",
+                    "    pm.expect(json.rideTitle).to.exist;",
+                    "    pm.environment.set('RIDE_ID', json._id);",
+                    "});"
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "name": "Get All Rides",
+            "request": {
+              "method": "GET",
+              "header": [],
+              "url": {
+                "raw": "{{RIDE_URL}}/api/rides",
+                "host": ["{{RIDE_URL}}"],
+                "path": ["api", "rides"]
+              }
+            },
+            "event": [
+              {
+                "listen": "test",
+                "script": {
+                  "exec": [
+                    "pm.test('Rides retrieved', function() {",
+                    "    pm.response.to.have.status(200);",
+                    "    const json = pm.response.json();",
+                    "    pm.expect(json).to.be.an('array');",
+                    "});"
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "Marketplace Service",
+        "item": [
+          {
+            "name": "Create Listing",
+            "request": {
+              "method": "POST",
+              "header": [
+                {"key": "Authorization", "value": "Bearer {{TOKEN}}"},
+                {"key": "Content-Type", "value": "application/json"}
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\n  \"title\": \"Used Textbook\",\n  \"description\": \"Data Structures book in good condition\",\n  \"price\": 500,\n  \"category\": \"books\",\n  \"condition\": \"good\",\n  \"images\": [],\n  \"contactInfo\": {\n    \"phone\": \"9876543210\",\n    \"hostel\": \"BH1\",\n    \"room\": \"101\"\n  }\n}"
+              },
+              "url": {
+                "raw": "{{MARKETPLACE_URL}}/api/listings",
+                "host": ["{{MARKETPLACE_URL}}"],
+                "path": ["api", "listings"]
+              }
+            },
+            "event": [
+              {
+                "listen": "test",
+                "script": {
+                  "exec": [
+                    "pm.test('Listing created', function() {",
+                    "    pm.response.to.have.status(201);",
+                    "    const json = pm.response.json();",
+                    "    pm.expect(json.listing.title).to.exist;",
+                    "    pm.environment.set('LISTING_ID', json.listing._id);",
+                    "});"
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "name": "Get All Listings",
+            "request": {
+              "method": "GET",
+              "header": [
+                {"key": "Authorization", "value": "Bearer {{TOKEN}}"}
+              ],
+              "url": {
+                "raw": "{{MARKETPLACE_URL}}/api/listings",
+                "host": ["{{MARKETPLACE_URL}}"],
+                "path": ["api", "listings"]
+              }
+            },
+            "event": [
+              {
+                "listen": "test",
+                "script": {
+                  "exec": [
+                    "pm.test('Listings retrieved', function() {",
+                    "    pm.response.to.have.status(200);",
+                    "    const json = pm.response.json();",
+                    "    pm.expect(json.listings).to.be.an('array');",
+                    "});"
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
