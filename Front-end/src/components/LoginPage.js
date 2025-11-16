@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import axios from "axios";
-import "../App.css";
+import "../App.css"; // Uses styles from App.css
 
 // Get Google Client ID from environment variables
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
@@ -17,8 +17,10 @@ function LoginPage() {
 
   // Get role from URL query params (default to 'student')
   const role = searchParams.get("role") || "student";
-  const existingToken = typeof window !== "undefined" ? localStorage.getItem("authToken") : null;
-  const existingUser = typeof window !== "undefined" ? localStorage.getItem("user") : null;
+  const existingToken =
+    typeof window !== "undefined" ? localStorage.getItem("authToken") : null;
+  const existingUser =
+    typeof window !== "undefined" ? localStorage.getItem("user") : null;
   const parsedUser = existingUser ? JSON.parse(existingUser) : null;
 
   const handleContinue = () => {
@@ -30,12 +32,16 @@ function LoginPage() {
       localStorage.removeItem("authToken");
       localStorage.removeItem("user");
     }
-   
+    // Reload to clear state and re-initialize login flow
     window.location.reload();
   };
 
   useEffect(() => {
-    
+    // If user is already logged in, don't initialize Google Sign-In
+    if (existingToken) {
+      return;
+    }
+
     const scriptId = "google-identity-script";
     if (!document.getElementById(scriptId)) {
       const script = document.createElement("script");
@@ -82,7 +88,7 @@ function LoginPage() {
     return () => {
       clearInterval(checkGoogleLoaded);
     };
-  }, [role, navigate]);
+  }, [role, existingToken]); // Add existingToken to dependency array
 
   const handleGoogleResponse = async (response) => {
     const tokenId = response?.credential;
@@ -108,20 +114,17 @@ function LoginPage() {
         }
       );
 
-      // Backend returns { token, user } on success. Accept presence of token.
+      // Backend returns { token, user } on success
       if (res.data && res.data.token) {
-        // Store the JWT token
         localStorage.setItem("authToken", res.data.token);
 
-        // Store user info if needed
         if (res.data.user) {
           localStorage.setItem("user", JSON.stringify(res.data.user));
         }
 
         console.log("Login successful!");
-
-  // Redirect to Home after successful login
-  navigate("/Home");
+        // Redirect to Home after successful login
+        navigate("/Home");
       } else {
         setError("Login failed. Please try again.");
       }
@@ -137,39 +140,81 @@ function LoginPage() {
     }
   };
 
+  // Capitalize the role for display
+  const displayRole = role.charAt(0).toUpperCase() + role.slice(1);
+
   return (
     <div className="login-wrapper">
       <div className="login-card">
         <h2>Welcome to Sarthi</h2>
-        <p>Sign in as {role.charAt(0).toUpperCase() + role.slice(1)}</p>
-        <p className="subtitle">Please sign in with your Google account</p>
+        <p>
+          {existingToken
+            ? "You are already logged in."
+            : `Sign in as ${displayRole}`}
+        </p>
+        {!existingToken && (
+          <p className="subtitle">Please sign in with your Google account</p>
+        )}
 
         {error && <div className="error-message">{error}</div>}
-
         {loading && <div className="loading-message">Signing in...</div>}
 
         <div className="google-button-container">
           {existingToken ? (
-            <div style={{ marginBottom: 12 }}>
-              <div style={{ marginBottom: 8 }}>You are already signed in as <strong>{parsedUser?.fullName || parsedUser?.email}</strong></div>
-              <button onClick={handleContinue} style={{ marginRight: 8, padding: '8px 12px', borderRadius: 6 }}>Continue to Home</button>
-              <button onClick={handleSignOut} style={{ padding: '8px 12px', borderRadius: 6 }}>Sign out</button>
+            <div className="already-signed-in">
+              <p>
+                Signed in as{" "}
+                <strong>{parsedUser?.fullName || parsedUser?.email}</strong>
+              </p>
+              <div className="role-buttons">
+                <button
+                  onClick={handleContinue}
+                  className="btn btn-primary" // Use CSS class
+                  style={{ flex: 1 }} // Add flex for layout
+                >
+                  Continue to Home
+                </button>
+                <button
+                  onClick={handleSignOut}
+                  className="btn btn-ghost" // Use CSS class
+                >
+                  Sign out
+                </button>
+              </div>
             </div>
-          ) : null}
-          <div ref={googleButtonRef}></div>
+          ) : (
+            // Only render the Google button div if not logged in
+            <div ref={googleButtonRef}></div>
+          )}
         </div>
 
         <div className="role-links">
           <p>Sign in as a different role:</p>
           <div className="role-buttons">
-            <Link to="/auth?role=student" className={role === "student" ? "active" : ""}>
+            <Link
+              to="/auth?role=student"
+              // Use button classes from App.css
+              className={`btn btn-outline ${
+                role === "student" ? "active" : ""
+              }`}
+            >
               Student
             </Link>
-            <Link to="/auth?role=faculty" className={role === "faculty" ? "active" : ""}>
+            <Link
+              to="/auth?role=faculty"
+              className={`btn btn-outline ${
+                role === "faculty" ? "active" : ""
+              }`}
+            >
               Faculty
             </Link>
-            <Link to="/auth?role=admin" className={role === "admin" ? "active" : ""}>
-              Admin
+            <Link
+              to="/auth?role=staff" // Renamed from "admin"
+              className={`btn btn-outline ${
+                role === "staff" ? "active" : "" // Renamed from "admin"
+              }`}
+            >
+              Staff
             </Link>
           </div>
         </div>

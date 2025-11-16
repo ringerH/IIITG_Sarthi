@@ -1,0 +1,89 @@
+/*
+ * Styles for Chat.js
+ */
+
+ .chat-window {
+    border: 1px solid var(--color-border, #ddd);
+    border-radius: var(--border-radius-md, 8px);
+    padding: var(--spacing-md, 16px);
+    min-height: 300px;
+    max-height: 500px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm, 8px);
+    background: var(--color-bg, #fff);
+  }
+  
+  .chat-window-empty {
+    color: var(--color-text-muted, #666);
+    text-align: center;
+    margin-top: var(--spacing-xl, 32px);
+  }
+  .chat-window-empty.error-message {
+    color: var(--color-error-text, #c33);
+  }
+  
+  .message-row {
+    display: flex;
+  }
+  
+  .message-row-sent {
+    justify-content: flex-end;
+  }
+  
+  .message-row-received {
+    justify-content: flex-start;
+  }
+  
+  .message-bubble {
+    padding: var(--spacing-sm, 8px) var(--spacing-md, 16px);
+    border-radius: var(--border-radius-lg, 12px);
+    max-width: 70%;
+    box-shadow: var(--box-shadow-sm, 0 1px 2px 0 rgba(0, 0, 0, 0.05));
+  }
+  
+  .message-bubble-sent {
+    background: var(--color-loading-bg, #e3f2fd); /* Light blue */
+    /* Make top-right corner square */
+    border-top-right-radius: var(--border-radius-sm, 6px);
+  }
+  
+  .message-bubble-received {
+    background: var(--color-bg-light, #f3f3f3); /* Light gray */
+    /* Make top-left corner square */
+    border-top-left-radius: var(--border-radius-sm, 6px);
+  }
+  
+  .message-text {
+    font-size: 0.95rem; /* 15px */
+    color: var(--color-text-dark, #222);
+    white-space: pre-wrap; /* Preserve line breaks */
+    word-break: break-word; /* Break long words */
+  }
+  
+  .message-timestamp {
+    font-size: 0.75rem; /* 12px */
+    color: var(--color-text-light, #666);
+    margin-top: var(--spacing-xs, 4px);
+    text-align: right;
+  }
+  
+  .chat-input-area {
+    display: flex;
+    margin-top: var(--spacing-md, 16px);
+    gap: var(--spacing-sm, 8px);
+  }
+  
+  /* Use form-input class from CreatePost.css */
+  .chat-input-area .form-input {
+    flex: 1; /* Take up remaining space */
+    margin-bottom: 0; /* Override default */
+  }
+  
+  /* Use btn classes from App.css */
+  .chat-input-area .btn {
+    /* No extra style needed, but you could add
+       flex-shrink: 0;
+       if it ever wraps weirdly */
+  }

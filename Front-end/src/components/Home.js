@@ -48,7 +48,7 @@ export default function Home() {
       setLoadingProfile(true);
       setProfileError("");
       try {
-        // Use authApi instead of hardcoded URL
+        
         const res = await authApi.get("/user/me");
         if (res.data && res.data.user) {
           setProfile(res.data.user);
@@ -90,7 +90,7 @@ export default function Home() {
         course: profile.course,
         department: profile.department,
       };
-      // Use authApi for profile update
+      
       const res = await authApi.put("/user/me", payload);
       if (res.data && res.data.user) {
         setProfile(res.data.user);
@@ -115,27 +115,27 @@ export default function Home() {
   // Centralized ad data — easy to edit or load from API later
   const ads = [
     {
-      title: "IIITG Tech Fest 2025",
+      title: "Yuvaan - IIITG",
       subtitle: "Tech Fest Banner",
-      description:
-        "Join the biggest campus event of the year — competitions, concerts, and more!",
-      img: "https://images.unsplash.com/photo-1556761175-129418cb2dfe?auto=format&fit=crop&w=800&q=80",
+      description: "Join the biggest campus event of the year — competitions, concerts, and more!",
+      img: "/banner.jpg",
+      youtubeLink: "https://www.youtube.com/watch?v=HuRkfQ2vESA"
     },
     {
       title: "IIITG Lost & Found Portal",
       subtitle: "Lost and Found Banner",
       description:
         "Lost something on campus? Post or browse items here — quick and secure.",
-      img: "https://images.unsplash.com/photo-1501594907352-04cda38ebc29?auto=format&fit=crop&w=800&q=80",
+      img: "/banner2.jpg",
       // WhatsApp group invite link - clicking this card will open the group
       link: "https://chat.whatsapp.com/Hr0Ahu1ViB5FnYFpHYSyFG?mode=wwt",
     },
     {
-      title: "IIITG Merchandise Store",
+      title: "Gymkhana - IIITG",
       subtitle: "Merchandise Banner",
       description:
-        "Get your hoodies, mugs, and tees with the official IIITG logo!",
-      img: "https://images.unsplash.com/photo-1607083206968-13611e3d76c7?auto=format&fit=crop&w=800&q=80",
+        "Check out the students' Gymkhana",
+      img: "/banner3.jpg",
     },
   ];
 
@@ -143,7 +143,7 @@ export default function Home() {
     <div className="app-container">
       <header className="header">
         <div className="header-content">
-          <div className="header-title">IIITG Student Community Hub</div>
+          <div className="header-title">Sarthi - IIITG's Community Hub</div>
           <div className="header-nav">
             {displayName ? (
               <>
@@ -175,7 +175,7 @@ export default function Home() {
       <main>
         <section className="hero-section">
           <div className="hero-text">
-            <h1 className="hero-title">IIITG Student Community Hub</h1>
+            <h1 className="hero-title">IIITG Community Hub</h1>
             <p className="hero-description">
               Your one-stop platform for carpooling and a campus marketplace.
               Connect, collaborate, and make campus life easier.
@@ -231,11 +231,11 @@ export default function Home() {
             );
 
             // If the ad has a link, wrap the card with an anchor that opens in a new tab
-            if (ad.link) {
+            if (ad.link || ad.youtubeLink) {
               return (
                 <a
                   key={`link-${index}`}
-                  href={ad.link}
+                  href={ad.link || ad.youtubeLink}
                   target="_blank"
                   rel="noopener noreferrer"
                   style={{

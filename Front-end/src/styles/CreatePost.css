@@ -1,0 +1,90 @@
+/*
+ * Styles for the CreatePost component (Create Ride form)
+ */
+
+ .create-post-container {
+    max-width: 760px;
+    margin: 32px auto;
+    background: white;
+    border-radius: 12px;
+    padding: 28px;
+    box-shadow: 0 8px 30px rgba(17, 24, 39, 0.06);
+  }
+  
+  .page-title {
+    font-size: 1.75rem;
+    margin-bottom: 24px; /* Added more bottom margin */
+    color: #0f172a;
+    padding-bottom: 16px; /* Added a bottom border */
+    border-bottom: 1px solid #f3f4f6;
+  }
+  
+  .create-post-form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px; /* Slightly larger gap */
+  }
+  
+  /* Base styles for all form inputs */
+  .form-input,
+  .form-textarea {
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: 8px;
+    border: 1px solid #e6e6f0;
+    background: #fbfbff;
+    font-size: 0.95rem;
+    color: #0f172a;
+    box-sizing: border-box; /* Ensures padding doesn't affect width */
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  
+  .form-input:focus,
+  .form-textarea:focus {
+    outline: none;
+    border-color: #3b82f6; /* Blue border on focus */
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+  
+  .form-textarea {
+    grid-column: 1 / -1; /* Span both columns */
+    min-height: 120px;
+    resize: vertical;
+    font-family: inherit; /* Make sure it uses the same font */
+  }
+  
+  /* Wrapper for a label and an input */
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  
+  /* Added styles for labels */
+  .form-group label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #374151;
+  }
+  
+  /* This is the container for the submit button */
+  .form-actions {
+    grid-column: 1 / -1; /* Span both columns */
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 8px;
+  }
+  
+  /* Styling the submit button (using global classes) */
+  .form-actions .btn {
+    width: auto; /* Override the 100% width from .btn-primary */
+    padding: 12px 24px;
+    font-size: 1rem;
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 720px) {
+    .create-post-form {
+      grid-template-columns: 1fr;
+    }
+  }

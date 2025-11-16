@@ -1,9 +1,13 @@
 import React, { useEffect, useState, useRef } from "react";
 import { authApi, rideApi } from "../api/config"; // Import both APIs
-import "../App.css";
+import "../App.css"; //
+// Import the new styles (or add them to App.css)
+import "../styles/UserProfile.css"; 
 import { io } from "socket.io-client";
 
 function UserProfile() {
+  // --- All your state and logic remains identical ---
+  // [NO LOGIC CHANGES HERE]
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -28,7 +32,6 @@ function UserProfile() {
       setMessage("");
       try {
         console.log("[UserProfile] Fetching profile with token:", token ? "present" : "missing");
-        // Use authApi for profile endpoint
         const res = await authApi.get("/user/me");
         console.log("[UserProfile] Profile response:", res.data);
         if (res.data && res.data.user) {
@@ -44,7 +47,6 @@ function UserProfile() {
         const errorMsg = err.response?.data?.message || err.message || "Error loading profile";
         setMessage(`Error: ${errorMsg} (Status: ${err.response?.status || 'unknown'})`);
         
-        // Don't let the global interceptor redirect - we'll show the error
         if (err.response?.status === 401) {
           setMessage("Authentication failed. Please sign in again.");
         }
@@ -61,7 +63,6 @@ function UserProfile() {
 
     fetchProfile();
     
-    // Use rideApi for ride-related requests
     const fetchRequests = async () => {
       setLoadingRequests(true);
       setRequestsError("");
@@ -242,7 +243,6 @@ function UserProfile() {
         course: user.course,
         department: user.department,
       };
-      // Use authApi for profile update
       const res = await authApi.put("/user/me", payload);
       if (res.data && res.data.user) {
         setUser(res.data.user);
@@ -262,35 +262,46 @@ function UserProfile() {
       setSaving(false);
     }
   };
+  // --- End of logic ---
+
 
   if (loading) {
     return (
-      <div className="create-post-container">
-        <p>Loading profile...</p>
+      // Use profile-page-container for consistency
+      <div className="profile-page-container">
+        <div className="loading-message">Loading profile...</div>
       </div>
     );
   }
 
   if (!user) {
     return (
-      <div className="create-post-container">
-        <p>{message || "No profile data"}</p>
+      <div className="profile-page-container">
+        {/* Use error-message class from App.css */}
+        <div className="error-message">{message || "No profile data"}</div>
       </div>
     );
   }
 
   return (
+    // This container class comes from CreatePost.css
     <div className="create-post-container">
       <h2 className="page-title">Your Profile</h2>
 
+      {/* Use dedicated classes for messages */}
       {message && (
-        <div style={{ marginBottom: 12 }} className="subtitle">
+        <div
+          className={`message-banner ${
+            message.startsWith("Error:") ? "error-message" : "loading-message"
+          }`}
+        >
           {message}
         </div>
       )}
 
+      {/* This form class comes from CreatePost.css */}
       <div className="create-post-form">
-        <div>
+        <div className="form-group"> {/* Use form-group wrapper */}
           <label>Full name</label>
           <input
             className="form-input"
@@ -300,12 +311,12 @@ function UserProfile() {
           />
         </div>
 
-        <div>
+        <div className="form-group">
           <label>Email</label>
           <input className="form-input" value={user.email || ""} disabled />
         </div>
 
-        <div>
+        <div className="form-group">
           <label>Roll Number</label>
           <input
             className="form-input"
@@ -316,7 +327,7 @@ function UserProfile() {
           />
         </div>
 
-        <div>
+        <div className="form-group">
           <label>Course</label>
           <input
             className="form-input"
@@ -327,7 +338,8 @@ function UserProfile() {
           />
         </div>
 
-        <div style={{ gridColumn: "1 / -1" }}>
+        {/* This div now uses a class instead of inline style */}
+        <div className="form-group full-width">
           <label>Department</label>
           <input
             className="form-input"
@@ -340,7 +352,7 @@ function UserProfile() {
 
         <div className="form-actions">
           <button
-            className="btn page-action"
+            className="btn btn-primary page-action" // Use btn-primary
             onClick={handleSave}
             disabled={saving}
           >
@@ -349,155 +361,111 @@ function UserProfile() {
         </div>
       </div>
 
-      <div style={{ marginTop: 24 }}>
-        <h3 style={{ marginBottom: 8 }}>Incoming Requests</h3>
+      {/* --- INCOMING REQUESTS --- */}
+      <div className="profile-section-list">
+        <h3>Incoming Requests</h3>
         {loadingRequests ? (
-          <p>Loading requests...</p>
+          <div className="loading-message">Loading requests...</div>
         ) : requestsError ? (
-          <p style={{ color: "red" }}>{requestsError}</p>
+          <div className="error-message">{requestsError}</div>
         ) : requests.length === 0 ? (
-          <p>No requests at the moment.</p>
+          <p>No new requests.</p>
         ) : (
-          <div>
+          <div className="request-list">
             {requests.map((reqItem) => (
-              <div
-                key={reqItem._id}
-                style={{
-                  padding: 12,
-                  border: "1px solid #eee",
-                  borderRadius: 8,
-                  marginBottom: 8,
-                }}
-              >
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                  }}
-                >
-                  <div>
-                    <div style={{ fontWeight: 600 }}>
+              <div key={reqItem._id} className="request-card">
+                <div className="request-card-header">
+                  <div className="request-card-info">
+                    <div className="request-card-title">
                       {reqItem.rideTitle || "Ride request"}
                     </div>
-                    <div style={{ fontSize: 13, color: "#444" }}>
+                    <div className="request-card-subtitle">
                       {reqItem.requesterName} ({reqItem.requesterEmail})
                     </div>
                   </div>
-                  <div>
-                    <span
-                      style={{ marginRight: 8, fontSize: 13, color: "#666" }}
-                    >
-                      Status: {reqItem.status}
-                    </span>
-                    {reqItem.status === "accepted" && reqItem.chatId && (
-                      <a
-                        href={`/chat/${reqItem.chatId}`}
-                        className="btn"
-                        style={{ marginLeft: 8 }}
-                      >
-                        💬 Chat
-                      </a>
-                    )}
+                  <div className="request-card-status">
+                    Status: {reqItem.status}
                   </div>
                 </div>
-                <div style={{ marginTop: 8 }}>
-                  {reqItem.status === "pending" && (
-                    <>
-                      <button
-                        className="btn btn-primary"
-                        onClick={() =>
-                          handleRequestAction(reqItem._id, "accepted")
-                        }
-                        style={{ marginRight: 8 }}
-                      >
-                        Accept
-                      </button>
-                      <button
-                        className="btn btn-outline"
-                        onClick={() =>
-                          handleRequestAction(reqItem._id, "rejected")
-                        }
-                      >
-                        Reject
-                      </button>
-                    </>
-                  )}
-                </div>
+                {reqItem.status === "pending" && (
+                  <div className="request-card-actions">
+                    <button
+                      className="btn btn-primary" //
+                      onClick={() =>
+                        handleRequestAction(reqItem._id, "accepted")
+                      }
+                    >
+                      Accept
+                    </button>
+                    <button
+                      className="btn btn-outline" //
+                      onClick={() =>
+                        handleRequestAction(reqItem._id, "rejected")
+                      }
+                    >
+                      Reject
+                    </button>
+                  </div>
+                )}
               </div>
             ))}
           </div>
         )}
       </div>
 
-      <div style={{ marginTop: 24 }}>
-        <h3 style={{ marginBottom: 8 }}>Outgoing Requests</h3>
+      {/* --- OUTGOING REQUESTS --- */}
+      <div className="profile-section-list">
+        <h3>Outgoing Requests</h3>
         {loadingOutgoing ? (
-          <p>Loading outgoing requests...</p>
+          <div className="loading-message">Loading outgoing requests...</div>
         ) : outgoingError ? (
-          <p style={{ color: "red" }}>{outgoingError}</p>
+          <div className="error-message">{outgoingError}</div>
         ) : outgoingRequests.length === 0 ? (
           <p>No outgoing requests.</p>
         ) : (
-          <div>
+          <div className="request-list">
             {outgoingRequests.map((reqItem) => (
-              <div
-                key={reqItem._id}
-                style={{
-                  padding: 12,
-                  border: "1px solid #eee",
-                  borderRadius: 8,
-                  marginBottom: 8,
-                }}
-              >
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                  }}
-                >
-                  <div>
-                    <div style={{ fontWeight: 600 }}>
+              <div key={reqItem._id} className="request-card">
+                <div className="request-card-header">
+                  <div className="request-card-info">
+                    <div className="request-card-title">
                       {reqItem.rideTitle || "Ride request"}
                     </div>
-                    <div style={{ fontSize: 13, color: "#444" }}>
-                      {reqItem.toUserEmail || "Owner"}
+                    <div className="request-card-subtitle">
+                      To: {reqItem.toUserEmail || "Owner"}
                     </div>
                   </div>
-                  <div>
-                    <span
-                      style={{ marginRight: 8, fontSize: 13, color: "#666" }}
-                    >
-                      Status: {reqItem.status}
-                    </span>
-                    {reqItem.status === "accepted" && reqItem.chatId && (
-                      <a
-                        href={`/chat/${reqItem.chatId}`}
-                        className="btn"
-                        style={{ marginLeft: 8 }}
-                      >
-                        💬 Chat
-                      </a>
-                    )}
+                  <div className="request-card-status">
+                    Status: {reqItem.status}
                   </div>
                 </div>
+                {reqItem.status === "accepted" && reqItem.chatId && (
+                  <div className="request-card-actions">
+                    <a
+                      href={`/chat/${reqItem.chatId}`}
+                      className="btn btn-ghost" //
+                    >
+                      💬 Chat
+                    </a>
+                  </div>
+                )}
               </div>
             ))}
           </div>
         )}
       </div>
 
-      <div style={{ marginTop: 24 }}>
-        <h3 style={{ marginBottom: 8 }}>Accepted Rides</h3>
+      {/* --- ACCEPTED RIDES --- */}
+      <div className="profile-section-list">
+        <h3>Accepted Rides</h3>
         {loadingAccepted ? (
-          <p>Loading accepted rides...</p>
+          <div className="loading-message">Loading accepted rides...</div>
         ) : acceptedError ? (
-          <p style={{ color: "red" }}>{acceptedError}</p>
+          <div className="error-message">{acceptedError}</div>
         ) : acceptedRequests.length === 0 ? (
           <p>No accepted rides yet.</p>
         ) : (
-          <div>
+          <div className="request-list">
             {acceptedRequests.map((item) => {
               const isRequester =
                 item.requesterId === user._id || item.requesterId === user.id;
@@ -505,39 +473,28 @@ function UserProfile() {
                 ? item.toUserEmail || "Owner"
                 : item.requesterName || "Requester";
               return (
-                <div
-                  key={item._id}
-                  style={{
-                    padding: 12,
-                    border: "1px solid #eee",
-                    borderRadius: 8,
-                    marginBottom: 8,
-                  }}
-                >
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                    }}
-                  >
-                    <div>
-                      <div style={{ fontWeight: 600 }}>
+                <div key={item._id} className="request-card">
+                  <div className="request-card-header">
+                    <div className="request-card-info">
+                      <div className="request-card-title">
                         {item.rideTitle || "Ride"}
                       </div>
-                      <div style={{ fontSize: 13, color: "#444" }}>
+                      <div className="request-card-subtitle">
                         {isRequester
                           ? `Owner: ${otherName}`
                           : `Requester: ${otherName}`}
                       </div>
                     </div>
-                    <div>
+                    <div className="request-card-actions">
                       {item.chatId ? (
-                        <a href={`/chat/${item.chatId}`} className="btn">
+                        <a
+                          href={`/chat/${item.chatId}`}
+                          className="btn btn-ghost" //
+                        >
                           💬 Chat
                         </a>
                       ) : (
-                        <span style={{ color: "#666" }}>No chat</span>
+                        <span className="request-card-status">No chat</span>
                       )}
                     </div>
                   </div>

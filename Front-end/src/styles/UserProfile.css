@@ -1,0 +1,112 @@
+/*
+ * Styles for UserProfile.js
+ * These classes replace the inline styles for request lists.
+ */
+
+/* Used in the main form for messages */
+.message-banner {
+    padding: var(--spacing-md, 16px);
+    border-radius: var(--border-radius-sm, 6px);
+    margin-bottom: var(--spacing-lg, 20px);
+    font-size: 14px;
+  }
+  
+  /* Use existing error/loading styles from App.css */
+  .message-banner.error-message {
+    background-color: var(--color-error-bg, #fee);
+    color: var(--color-error-text, #c33);
+    border: 1px solid var(--color-error-border, #fcc);
+  }
+  .message-banner.loading-message {
+    background-color: var(--color-loading-bg, #e3f2fd);
+    color: var(--color-loading-text, #1976d2);
+    border: 1px solid var(--color-loading-border, #bbdefb);
+  }
+  
+  /* Form group wrappers for labels/inputs */
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  
+  .form-group label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--color-text-body, #374151);
+  }
+  
+  .form-group.full-width {
+    grid-column: 1 / -1;
+  }
+  
+  /* Main wrapper for each request list */
+  .profile-section-list {
+    margin-top: var(--spacing-xl, 32px);
+    padding-top: var(--spacing-lg, 20px);
+    border-top: 1px solid var(--color-border, #e5e7eb);
+  }
+  
+  .profile-section-list h3 {
+    margin-bottom: var(--spacing-md, 16px);
+    color: var(--color-text-dark, #111827);
+  }
+  
+  /* Container for all request cards */
+  .request-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm, 8px);
+  }
+  
+  /* Individual request card */
+  .request-card {
+    padding: var(--spacing-md, 16px);
+    border: 1px solid var(--color-border, #e5e7eb);
+    border-radius: var(--border-radius-md, 8px);
+    background: var(--color-bg-light, #f3f4f6);
+  }
+  
+  .request-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--spacing-md, 16px);
+    flex-wrap: wrap; /* Allow wrapping on small screens */
+  }
+  
+  .request-card-info {
+    flex: 1; /* Take up available space */
+  }
+  
+  .request-card-title {
+    font-weight: 600;
+    color: var(--color-text-dark, #111827);
+  }
+  
+  .request-card-subtitle {
+    font-size: 0.875rem; /* 14px */
+    color: var(--color-text-muted, #4b5563);
+    margin-top: var(--spacing-xs, 4px);
+  }
+  
+  .request-card-status {
+    font-size: 0.875rem; /* 14px */
+    color: var(--color-text-light, #6b7280);
+    font-style: italic;
+    flex-shrink: 0; /* Don't shrink */
+  }
+  
+  .request-card-actions {
+    margin-top: var(--spacing-md, 16px);
+    padding-top: var(--spacing-md, 16px);
+    border-top: 1px solid var(--color-border, #e5e7eb);
+    display: flex;
+    gap: var(--spacing-sm, 8px);
+  }
+  
+  /* Make chat buttons smaller */
+  .request-card .btn {
+    padding: 0.375rem 0.75rem; /* Smaller padding */
+    font-size: 0.8rem;
+  }

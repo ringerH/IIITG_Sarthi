@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/config";
+import '../styles/CreatePost.css'; 
 
 const CreatePost = () => {
   const navigate = useNavigate();
@@ -10,7 +11,7 @@ const CreatePost = () => {
   const [availableSeats, setAvailableSeats] = useState("");
   const [rideDate, setRideDate] = useState("");
   const [description, setDescription] = useState("");
-  const [error, setError] = useState(null); // Store error messages
+  const [error, setError] = useState(null); 
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -39,7 +40,6 @@ const CreatePost = () => {
       pickupLocation,
       dropoffLocation,
       availableSeats: seats,
-      // send ISO string so backend receives an unambiguous date
       rideDate: dateObj.toISOString(),
       description,
     };
@@ -47,26 +47,22 @@ const CreatePost = () => {
     console.log("Sending ride data:", rideData);
 
     try {
-      // Use the configured axios instance which has baseURL set to
-      // http://localhost:5000/api (see src/api/config.js)
-  const token = typeof window !== "undefined" ? localStorage.getItem('authToken') : null;
-  const response = await api.post("/rides", rideData, { headers: { Authorization: token ? `Bearer ${token}` : '' } });
+      const token = typeof window !== "undefined" ? localStorage.getItem('authToken') : null;
+      const response = await api.post("/rides", rideData, { headers: { Authorization: token ? `Bearer ${token}` : '' } });
       console.log("Response from backend:", response.data);
-  // clear form (optional)
+
       setRideTitle("");
       setPickupLocation("");
       setDropoffLocation("");
       setAvailableSeats("");
       setRideDate("");
       setDescription("");
-  // show success popup and redirect to Home
-  // using a friendly confirmation message
-  window.alert("Your ride has been created successfully!");
-  navigate("/Home");
+
+      window.alert("Your ride has been created successfully!");
+      navigate("/Home");
     } catch (error) {
       console.error("Error creating ride post:", error);
       if (error.response) {
-        // Log the response error
         console.error("Response Error:", error.response.data);
         setError(
           error.response.data.message || "Server error creating ride post."
@@ -82,52 +78,83 @@ const CreatePost = () => {
       <h2 className="page-title">Create a Ride Post</h2>
       {error && <p className="error-message">{error}</p>}
       <form className="create-post-form" onSubmit={handleSubmit}>
-        <input
-          className="form-input"
-          type="text"
-          placeholder="Ride Title"
-          value={rideTitle}
-          onChange={(e) => setRideTitle(e.target.value)}
-          required
-        />
-        <input
-          className="form-input"
-          type="text"
-          placeholder="Pickup Location"
-          value={pickupLocation}
-          onChange={(e) => setPickupLocation(e.target.value)}
-          required
-        />
-        <input
-          className="form-input"
-          type="text"
-          placeholder="Drop-off Location"
-          value={dropoffLocation}
-          onChange={(e) => setDropoffLocation(e.target.value)}
-          required
-        />
-        <input
-          className="form-input"
-          type="number"
-          placeholder="Available Seats"
-          value={availableSeats}
-          onChange={(e) => setAvailableSeats(e.target.value)}
-          required
-        />
-        <input
-          className="form-input"
-          type="datetime-local"
-          value={rideDate}
-          onChange={(e) => setRideDate(e.target.value)}
-          required
-        />
-        <textarea
-          className="form-textarea"
-          placeholder="Description"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          required
-        />
+
+        <div className="form-group">
+          <label htmlFor="rideTitle">Ride Title</label>
+          <input
+            id="rideTitle"
+            className="form-input"
+            type="text"
+            placeholder="e.g., Trip to Airport"
+            value={rideTitle}
+            onChange={(e) => setRideTitle(e.target.value)}
+            required
+          />
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="availableSeats">Available Seats</label>
+          <input
+            id="availableSeats"
+            className="form-input"
+            type="number"
+            placeholder="e.g., 2"
+            value={availableSeats}
+            onChange={(e) => setAvailableSeats(e.target.value)}
+            required
+          />
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="pickupLocation">Pickup Location</label>
+          <input
+            id="pickupLocation"
+            className="form-input"
+            type="text"
+            placeholder="e.g., IIITG Campus"
+            value={pickupLocation}
+            onChange={(e) => setPickupLocation(e.target.value)}
+            required
+          />
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="dropoffLocation">Drop-off Location</label>
+          <input
+            id="dropoffLocation"
+            className="form-input"
+            type="text"
+            placeholder="e.g., Guwahati Railway Station"
+            value={dropoffLocation}
+            onChange={(e) => setDropoffLocation(e.target.value)}
+            required
+          />
+        </div>
+
+        <div className="form-group" style={{ gridColumn: "1 / -1" }}>
+          <label htmlFor="rideDate">Date and Time</label>
+          <input
+            id="rideDate"
+            className="form-input"
+            type="datetime-local"
+            value={rideDate}
+            onChange={(e) => setRideDate(e.target.value)}
+            required
+          />
+        </div>
+        
+        <div className="form-group" style={{ gridColumn: "1 / -1" }}>
+          <label htmlFor="description">Description</label>
+          <textarea
+            id="description"
+            className="form-textarea"
+            placeholder="Any additional details (e.g., luggage space, stops)"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)} // <-- THIS IS THE FIX
+            required
+          />
+        </div>
+
         <div className="form-actions">
           <button type="submit" className="btn btn-primary">
             Create Ride

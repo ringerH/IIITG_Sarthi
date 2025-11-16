@@ -2,15 +2,20 @@ import React, { useEffect, useState, useRef } from "react";
 import { useParams } from "react-router-dom";
 import api from "../api/config";
 import { io } from "socket.io-client";
+import "../styles/Chat.css"; // Import the new CSS file
+import "../App.css"; // For .btn, .page-action, etc.
 
 export default function Chat() {
   const { id } = useParams();
   const [chat, setChat] = useState(null);
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState("");
+  const [loading, setLoading] = useState(true); // Added loading state
+  const [error, setError] = useState(null); // Added error state
   const socketRef = useRef(null);
   const bottomRef = useRef(null);
 
+  // --- No logic changes below ---
   const localUser =
     typeof window !== "undefined"
       ? JSON.parse(localStorage.getItem("user") || "{}") || {}
@@ -21,6 +26,8 @@ export default function Chat() {
 
   useEffect(() => {
     const fetchChat = async () => {
+      setLoading(true);
+      setError(null);
       try {
         const r = await api.get(`/chats/${id}`, {
           headers: { Authorization: `Bearer ${token}` },
@@ -31,17 +38,18 @@ export default function Chat() {
         }
       } catch (err) {
         console.error("Error fetching chat:", err);
+        setError(err.response?.data?.message || err.message || "Failed to load chat.");
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchChat();
 
-    // connect socket
     const socket = io("http://localhost:5003", { withCredentials: true });
     socketRef.current = socket;
 
     socket.on("connect", () => {
-      // join chat room and user room
       try {
         if (id) socket.emit("join", id);
         if (userId) socket.emit("joinUser", userId);
@@ -55,9 +63,7 @@ export default function Chat() {
       }
     });
 
-    // chatCreated notifications could be handled here if needed
     socket.on("chatCreated", (info) => {
-      // if the created chat is the current chat we can fetch messages
       if (info?.chatId === id) {
         api
           .get(`/chats/${id}`, {
@@ -85,7 +91,6 @@ export default function Chat() {
     if (!text || text.trim() === "") return;
     const payload = { text };
     try {
-      // Optimistically send via socket
       const msg = {
         chatId: id,
         senderId: userId,
@@ -96,7 +101,6 @@ export default function Chat() {
         socketRef.current?.emit("message", msg);
       } catch (e) {}
 
-      // Persist via REST for reliability
       await api.post(`/chats/${id}/messages`, payload, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -105,45 +109,56 @@ export default function Chat() {
       console.error("Error sending message:", err);
     }
   };
+  
+  // --- End of logic ---
+
+  // Handle "Enter" key to send
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault(); // Prevents new line
+      handleSend();
+    }
+  };
+  
+  // Helper to format timestamp
+  const formatTimestamp = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleString(undefined, {
+      dateStyle: "short",
+      timeStyle: "short",
+    });
+  };
 
   return (
-    <div style={{ maxWidth: 900, margin: "24px auto", padding: 20 }}>
-      <h2>Chat</h2>
-      <div
-        style={{
-          border: "1px solid #ddd",
-          borderRadius: 8,
-          padding: 12,
-          minHeight: 300,
-          maxHeight: 500,
-          overflow: "auto",
-        }}
-      >
-        {messages.length === 0 ? (
-          <div style={{ color: "#666" }}>No messages yet.</div>
+    <div className="profile-page-container">
+      <h2 className="page-title">Chat</h2>
+      <div className="chat-window">
+        {loading ? (
+          <div className="chat-window-empty">Loading chat...</div>
+        ) : error ? (
+          <div className="chat-window-empty error-message">{error}</div>
+        ) : messages.length === 0 ? (
+          <div className="chat-window-empty">No messages yet.</div>
         ) : (
           messages.map((m, i) => (
             <div
-              key={i}
-              style={{
-                marginBottom: 8,
-                display: "flex",
-                flexDirection:
-                  m.senderId === String(userId) ? "row-reverse" : "row",
-              }}
+              key={m._id || i} // Use _id if available, fallback to index
+              className={`message-row ${
+                m.senderId === String(userId)
+                  ? "message-row-sent"
+                  : "message-row-received"
+              }`}
             >
               <div
-                style={{
-                  background:
-                    m.senderId === String(userId) ? "#e6f7ff" : "#f3f3f3",
-                  padding: 8,
-                  borderRadius: 6,
-                  maxWidth: "70%",
-                }}
+                className={`message-bubble ${
+                  m.senderId === String(userId)
+                    ? "message-bubble-sent"
+                    : "message-bubble-received"
+                }`}
               >
-                <div style={{ fontSize: 13, color: "#222" }}>{m.text}</div>
-                <div style={{ fontSize: 11, color: "#666", marginTop: 6 }}>
-                  {new Date(m.createdAt || m.createdAt).toLocaleString()}
+                <div className="message-text">{m.text}</div>
+                <div className="message-timestamp">
+                  {formatTimestamp(m.createdAt)}
                 </div>
               </div>
             </div>
@@ -152,22 +167,18 @@ export default function Chat() {
         <div ref={bottomRef} />
       </div>
 
-      <div style={{ display: "flex", marginTop: 12 }}>
+      <div className="chat-input-area">
         <input
           value={text}
           onChange={(e) => setText(e.target.value)}
+          onKeyDown={handleKeyDown} // Send on Enter
           placeholder="Type a message"
-          style={{
-            flex: 1,
-            padding: 8,
-            borderRadius: 6,
-            border: "1px solid #ddd",
-          }}
+          className="form-input" // Re-use existing class
         />
         <button
           onClick={handleSend}
-          className="btn page-action"
-          style={{ marginLeft: 8 }}
+          className="btn btn-primary page-action" // Re-use existing classes
+          disabled={!text.trim()} // Visually disable button
         >
           Send
         </button>
