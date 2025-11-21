@@ -1,15 +1,6 @@
 version: '3.8'
 
 services:
-  mongodb:
-    image: mongo:7
-    container_name: campus_mongodb
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongo-data:/data/db
-    networks:
-      - campus-network
 
   auth-service:
     build: ./Back-end/auth-service
@@ -18,11 +9,9 @@ services:
       - "5001:5001"
     environment:
       - PORT=5001
-      - MONGO_URI=mongodb://mongodb:27017/campus_hub
+      - MONGO_URI=mongodb+srv://arunavdutta20_db_user:Alpha12345@cluster1.bipwdgc.mongodb.net/?appName=Cluster1
       - JWT_SECRET=${JWT_SECRET}
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
-    depends_on:
-      - mongodb
     networks:
       - campus-network
     restart: unless-stopped
@@ -34,10 +23,8 @@ services:
       - "5003:5003"
     environment:
       - PORT=5003
-      - MONGO_URI=mongodb://mongodb:27017/campus_hub
+      - MONGO_URI=mongodb+srv://arunavdutta20_db_user:Alpha12345@cluster1.bipwdgc.mongodb.net/?appName=Cluster1
       - JWT_SECRET=${JWT_SECRET}
-    depends_on:
-      - mongodb
     networks:
       - campus-network
     restart: unless-stopped
@@ -49,10 +36,8 @@ services:
       - "5000:5000"
     environment:
       - PORT=5000
-      - MONGO_URI=mongodb://mongodb:27017/campus_hub
+      - MONGO_URI=mongodb+srv://Hillol_Pratim:UaYcMvlq8Oqsxsif@cluster0.mjpsis4.mongodb.net/
       - JWT_SECRET=${JWT_SECRET}
-    depends_on:
-      - mongodb
     networks:
       - campus-network
     restart: unless-stopped

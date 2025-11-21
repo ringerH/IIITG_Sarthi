@@ -15,9 +15,12 @@ export default defineConfig({
       }
     }
   },
-  server: {
-      host: '0.0.0.0', 
+  server: { 
       port: 3000,
+      host: true,
+      watch: {
+        usePolling: true,
+      },
       proxy: {
         '/api/auth': {
           target: process.env.VITE_AUTH_URL || 'http://localhost:5001',
