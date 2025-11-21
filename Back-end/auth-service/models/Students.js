@@ -28,7 +28,7 @@ const studentSchema = new mongoose.Schema(
     googleId: {
       type: String,
       unique: true,
-      sparse: true, // IMPORTANT: Allows multiple null values
+      sparse: true, 
     },
   },
   { timestamps: true }

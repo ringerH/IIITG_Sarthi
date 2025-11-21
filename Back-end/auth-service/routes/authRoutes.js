@@ -8,6 +8,20 @@ const Admin = require("../models/Admin");
 
 const router = express.Router();
 
+// Helper function to find user across all collections
+async function findUserByEmail(email) {
+  let user = await Student.findOne({ email });
+  if (user) return { user, role: 'student', Model: Student };
+  
+  user = await Faculty.findOne({ email });
+  if (user) return { user, role: 'faculty', Model: Faculty };
+  
+  user = await Admin.findOne({ email });
+  if (user) return { user, role: 'admin', Model: Admin };
+  
+  return null;
+}
+
 // POST /api/auth/google
 // Accepts { tokenId } and optional { role }
 router.post("/auth/google", async (req, res) => {
@@ -20,7 +34,7 @@ router.post("/auth/google", async (req, res) => {
   );
 
   // Default to 'student' role if not provided
-  const role = (rawRole || "student").toLowerCase();
+  const requestedRole = (rawRole || "student").toLowerCase();
 
   if (!tokenId) {
     return res
@@ -29,7 +43,7 @@ router.post("/auth/google", async (req, res) => {
   }
 
   try {
-    // Verify token with Google's tokeninfo endpoint
+    
     const resp = await axios.get(
       `https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(
         tokenId
@@ -40,14 +54,20 @@ router.post("/auth/google", async (req, res) => {
     console.log("Google verification successful for:", info.email);
 
     const expectedDomain = "iiitg.ac.in";
-    if (!info.email || !info.email.endsWith("@" + expectedDomain)) {
-      console.warn("Google token email domain mismatch:", info.email);
-      return res
-        .status(401)
-        .json({ success: false, message: "Only @iiitg.ac.in emails are allowed." });
+    const isIIITGEmail = info.email && info.email.endsWith("@" + expectedDomain);
+    
+    
+    if (requestedRole !== "staff" && !isIIITGEmail) {
+      console.warn(`Non-IIITG email attempted login as ${requestedRole}:`, info.email);
+      return res.status(401).json({ 
+        success: false, 
+        message: "Students and Faculty must use @iiitg.ac.in email addresses." 
+      });
     }
+    
+    console.log(`Email domain check passed for ${requestedRole}:`, info.email);
 
-    // Optional: verify audience if GOOGLE_CLIENT_ID is set in env
+    
     const expectedAud = process.env.GOOGLE_CLIENT_ID;
     if (expectedAud && info.aud !== expectedAud) {
       console.warn("Google token audience mismatch");
@@ -69,51 +89,51 @@ router.post("/auth/google", async (req, res) => {
     const googleId = info.sub;
     const fullName = info.name || info.email;
 
-    // Try to find an existing user across all role collections first.
-    // This prevents creating duplicate accounts for the same email when the
-    // frontend requests a different role on sign-in.
-    let user = await Student.findOne({ email });
-    let detectedRole = "student";
-
-    if (!user) {
-      user = await Faculty.findOne({ email });
-      if (user) detectedRole = "faculty";
-    }
-    if (!user) {
-      user = await Admin.findOne({ email });
-      if (user) detectedRole = "admin";
-    }
-
-    // If we didn't find an existing record, fall back to the requested role.
+    // Try to find an existing user across all collections
+    const existingUserData = await findUserByEmail(email);
+    
+    let user;
+    let finalRole;
     let Model;
-    if (user) {
-      // Use the model that matched the existing document
-      if (detectedRole === "faculty") Model = Faculty;
-      else if (detectedRole === "admin") Model = Admin;
-      else Model = Student;
-      console.log("Found existing user in role:", detectedRole, email);
-    } else {
-      // No existing user, create in the requested role
-      if (role === "faculty") Model = Faculty;
-      else if (role === "admin") Model = Admin;
-      else Model = Student;
-      console.log("Creating new user (role requested):", role, email);
-    }
 
-    // If we found a user earlier, ensure 'user' variable points to the document
-    if (!user) {
+    if (existingUserData) {
+      // User already exists - use their existing role and model
+      user = existingUserData.user;
+      finalRole = existingUserData.role;
+      Model = existingUserData.Model;
+      
+      console.log(`Found existing user as ${finalRole}:`, email);
+      
+      // Update googleId if missing
+      if (!user.googleId) {
+        console.log("Updating existing user with googleId:", email);
+        user.googleId = googleId;
+        await user.save();
+      }
+      
+      // Warn if user is trying to login with a different role
+      if (requestedRole !== finalRole) {
+        console.warn(
+          `User ${email} registered as ${finalRole} but trying to login as ${requestedRole}`
+        );
+      }
+    } else {
+      // No existing user - create new user in requested role collection
+      if (requestedRole === "faculty") {
+        Model = Faculty;
+        finalRole = "faculty";
+      } else if (requestedRole === "staff") {
+        Model = Admin;
+        finalRole = "staff";
+      } else {
+        Model = Student;
+        finalRole = "student";
+      }
+      
+      console.log("Creating new user (role requested):", finalRole, email);
+      
       user = await Model.create({ fullName, email, googleId });
-    } else if (!user.googleId) {
-      // Attach googleId if missing
-      console.log("Updating existing user with googleId:", email);
-      user.googleId = googleId;
-      await user.save();
-    } else {
-      console.log("Existing user logged in:", email);
     }
-
-    // Ensure role in JWT matches the actual role in the database when possible
-    const finalRole = detectedRole || role;
 
     // Create JWT token for the frontend
     const jwtSecret = process.env.JWT_SECRET || "dev_jwt_secret";

@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
+
 import axios from 'axios';
 
 import { authApi } from '../api/config';
 
+// Ensure this file exists and is the one we updated
 import '../styles/marketplace.css'; 
 
 const marketplaceApi = axios.create({
@@ -238,10 +240,17 @@ function Marketplace() {
       {/* Header */}
       <header className="mp-header">
         <div className="mp-header-content">
-          <h1 className="mp-header-title">Campus Marketplace</h1>
-          {currentUser ? 
-          (<p className="mp-header-subtitle">Logged in as: {currentUser.email}</p> ) : 
-              ( <p className="mp-header-subtitle">Buy and sell items on campus</p>)}
+          <div>
+            <h1 className="mp-header-title">Marketplace</h1>
+            <p className="mp-header-subtitle">Buy and sell with the campus community</p>
+          </div>
+          {currentUser && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <span style={{ fontSize: '0.9rem', fontWeight: '500' }}>
+                Hi, {currentUser.fullName || currentUser.email.split('@')[0]}
+              </span>
+            </div>
+          )}
         </div>
       </header>
 
@@ -250,16 +259,26 @@ function Marketplace() {
         {/* Action Bar */}
         <div className="mp-action-bar">
           <h2 className="mp-section-title">
-            Available Items ({listings.length})
+            Discover Items ({listings.length})
           </h2>
-          {currentUser && (
-            <button
-                onClick={() => setShowForm(!showForm)}
-                className="mp-button mp-button-create"
-            >
-                {showForm ? 'Cancel' : '+ Create Listing'}
-            </button>
-          )}
+          <div style={{ display: 'flex', gap: '12px' }}>
+            {currentUser && (
+              <>
+                <button
+                  onClick={() => navigate('/marketplace/profile')}
+                  className="mp-button mp-button-edit"
+                >
+                  <span>👤</span> My Profile
+                </button>
+                <button
+                  onClick={() => setShowForm(!showForm)}
+                  className="mp-button mp-button-create"
+                >
+                  {showForm ? 'Close Form' : '+ Sell Item'}
+                </button>
+              </>
+            )}
+          </div>
         </div>
 
         {/* --- CREATE LISTING FORM --- */}
@@ -272,6 +291,7 @@ function Marketplace() {
                 <input
                   type="text"
                   name="title"
+                  placeholder="e.g. Engineering Mechanics Textbook"
                   value={formData.title}
                   onChange={handleInputChange}
                   required
@@ -283,11 +303,12 @@ function Marketplace() {
                 <label className="mp-label">Description</label>
                 <textarea
                   name="description"
+                  placeholder="Describe the condition, age, and details..."
                   value={formData.description}
                   onChange={handleInputChange}
                   required
                   rows={3}
-                  className="mp-input"
+                  className="mp-textarea"
                 />
               </div>
 
@@ -311,7 +332,7 @@ function Marketplace() {
                     name="category"
                     value={formData.category}
                     onChange={handleInputChange}
-                    className="mp-input"
+                    className="mp-select"
                   >
                     <option value="electronics">Electronics</option>
                     <option value="books">Books</option>
@@ -329,7 +350,7 @@ function Marketplace() {
                     name="condition"
                     value={formData.condition}
                     onChange={handleInputChange}
-                    className="mp-input"
+                    className="mp-select"
                   >
                     <option value="new">New</option>
                     <option value="like-new">Like New</option>
@@ -378,8 +399,9 @@ function Marketplace() {
               <button
                 type="submit"
                 className="mp-button mp-button-submit"
+                style={{ marginTop: '1rem' }}
               >
-                Create Listing
+                Publish Listing
               </button>
             </form>
           </div>
@@ -403,7 +425,7 @@ function Marketplace() {
         {/* Listings Grid */}
         {!loading && listings.length === 0 && (
           <div className="mp-no-listings">
-            <p>No listings found. Create the first one!</p>
+            <p>No listings found. Be the first to sell something!</p>
           </div>
         )}
 
@@ -426,10 +448,6 @@ function Marketplace() {
                     </span>
                   </div>
                   
-                  <p className="mp-card-description">
-                    {listing.description}
-                  </p>
-                  
                   <div className="mp-card-tags">
                     <span className="mp-card-tag-category">
                       {listing.category}
@@ -438,27 +456,31 @@ function Marketplace() {
                       {listing.condition}
                     </span>
                   </div>
+
+                  <p className="mp-card-description">
+                    {listing.description}
+                  </p>
                   
                   <div className="mp-card-price-row">
                     <span className="mp-card-price">
-                      ₹{listing.price}
+                      ₹{listing.price.toLocaleString()}
                     </span>
                   </div>
                   
                   <p className="mp-card-posted-by">
-                    Posted by: {listing.createdBy?.name || 'Seller'}
+                    Seller: {listing.createdBy?.name || 'Unknown'}
                   </p>
                 </div>
                 
                 {/* Contact Seller Button - Only for logged-in users who aren't the owner */}
                 {currentUser && listing.createdBy && currentUser._id !== listing.createdBy._id && listing.status === 'available' && (
-                  <div className="mp-card-actions">
+                  <div className="mp-card-actions" style={{ display: 'flex' }}>
                     <a
-                      href={`mailto:${listing.createdBy.email}?subject=Inquiry about: ${listing.title}&body=Hi ${listing.createdBy.name},%0D%0A%0D%0AI'm interested in your listing "${listing.title}" priced at ₹${listing.price}.%0D%0A%0D%0APlease let me know if it's still available.%0D%0A%0D%0AThank you!`}
+                      href={`mailto:${listing.createdBy.email}?subject=Inquiry: ${listing.title}&body=Hi,%0D%0A%0D%0AI'm interested in your listing "${listing.title}" priced at ₹${listing.price}. Is it still available?`}
                       className="mp-button mp-button-contact"
                       onClick={(e) => e.stopPropagation()}
                     >
-                      📧 Contact Seller
+                      Email Seller
                     </a>
                   </div>
                 )}
@@ -497,7 +519,7 @@ function Marketplace() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="mp-modal-header">
-              <h3 className="mp-form-title">Edit Listing</h3>
+              <h3 className="mp-form-title" style={{marginBottom: 0}}>Edit Listing</h3>
               <button 
                 onClick={() => setIsEditModalOpen(false)}
                 className="mp-modal-close-btn"
@@ -527,7 +549,7 @@ function Marketplace() {
                   onChange={handleEditInputChange}
                   required
                   rows={3}
-                  className="mp-input"
+                  className="mp-textarea"
                 />
               </div>
 
@@ -550,7 +572,7 @@ function Marketplace() {
                     name="category"
                     value={editFormData.category || 'other'}
                     onChange={handleEditInputChange}
-                    className="mp-input"
+                    className="mp-select"
                   >
                     <option value="electronics">Electronics</option>
                     <option value="books">Books</option>
@@ -567,7 +589,7 @@ function Marketplace() {
                     name="condition"
                     value={editFormData.condition || 'good'}
                     onChange={handleEditInputChange}
-                    className="mp-input"
+                    className="mp-select"
                   >
                     <option value="new">New</option>
                     <option value="like-new">Like New</option>
@@ -584,7 +606,7 @@ function Marketplace() {
                   name="status"
                   value={editFormData.status || 'available'}
                   onChange={handleEditInputChange}
-                  className="mp-input"
+                  className="mp-select"
                 >
                   <option value="available">Available</option>
                   <option value="sold">Sold</option>
@@ -628,6 +650,7 @@ function Marketplace() {
               <button
                 type="submit"
                 className="mp-button mp-button-submit"
+                style={{marginTop: '1rem'}}
               >
                 Save Changes
               </button>

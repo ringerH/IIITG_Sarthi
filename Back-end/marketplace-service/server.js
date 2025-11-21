@@ -3,7 +3,6 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 require('dotenv').config();
 
-
 const app = express();
 
 // Middleware
@@ -21,9 +20,11 @@ mongoose.connect(process.env.MONGO_URI, {
 
 // Import routes
 const listingRoutes = require('./backend/routes/listingRoutes');
+const userRoutes = require('./backend/routes/userRoutes'); // NEW
 
 // Routes
 app.use('/api/listings', listingRoutes);
+app.use('/api/user', userRoutes); // NEW
 
 // Health check endpoint
 app.get('/health', (req, res) => {
@@ -41,7 +42,8 @@ app.get('/', (req, res) => {
         version: '1.0.0',
         endpoints: {
             health: '/health',
-            listings: '/api/listings'
+            listings: '/api/listings',
+            user: '/api/user' // NEW
         }
     });
 });

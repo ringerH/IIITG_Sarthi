@@ -209,7 +209,7 @@ function LoginPage() {
               Faculty
             </Link>
             <Link
-              to="/auth?role=staff" // Renamed from "admin"
+              to="/auth?role=staff" 
               className={`btn btn-outline ${
                 role === "staff" ? "active" : "" // Renamed from "admin"
               }`}

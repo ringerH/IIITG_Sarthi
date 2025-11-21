@@ -1,13 +1,10 @@
 import React, { useEffect, useState, useRef } from "react";
-import { authApi, rideApi } from "../api/config"; // Import both APIs
-import "../App.css"; //
-// Import the new styles (or add them to App.css)
-import "../styles/UserProfile.css"; 
+import { authApi, rideApi } from "../api/config";
+import "../App.css";
+import "../styles/UserProfile.css";
 import { io } from "socket.io-client";
 
 function UserProfile() {
-  // --- All your state and logic remains identical ---
-  // [NO LOGIC CHANGES HERE]
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -237,12 +234,25 @@ function UserProfile() {
     setSaving(true);
     setMessage("");
     try {
-      const payload = {
-        fullName: user.fullName,
-        rollNumber: user.rollNumber,
-        course: user.course,
-        department: user.department,
-      };
+      // Build payload based on user role
+      const payload = { fullName: user.fullName };
+      
+      // Get role from user object or localStorage
+      const userRole = user.role || JSON.parse(localStorage.getItem("user") || "{}")?.role || "student";
+      
+      // Add role-specific fields
+      if (userRole === "student") {
+        payload.rollNumber = user.rollNumber;
+        payload.course = user.course;
+        payload.department = user.department;
+      } else if (userRole === "faculty") {
+        payload.department = user.department;
+        payload.employeeId = user.employeeId;
+      } else if (userRole === "admin") {
+        payload.staffId = user.staffId;
+        payload.role = user.role; // Admin role field
+      }
+      
       const res = await authApi.put("/user/me", payload);
       if (res.data && res.data.user) {
         setUser(res.data.user);
@@ -262,12 +272,14 @@ function UserProfile() {
       setSaving(false);
     }
   };
-  // --- End of logic ---
 
+  // Helper to get user role
+  const getUserRole = () => {
+    return user?.role || JSON.parse(localStorage.getItem("user") || "{}")?.role || "student";
+  };
 
   if (loading) {
     return (
-      // Use profile-page-container for consistency
       <div className="profile-page-container">
         <div className="loading-message">Loading profile...</div>
       </div>
@@ -277,18 +289,17 @@ function UserProfile() {
   if (!user) {
     return (
       <div className="profile-page-container">
-        {/* Use error-message class from App.css */}
         <div className="error-message">{message || "No profile data"}</div>
       </div>
     );
   }
 
-  return (
-    // This container class comes from CreatePost.css
-    <div className="create-post-container">
-      <h2 className="page-title">Your Profile</h2>
+  const userRole = getUserRole();
 
-      {/* Use dedicated classes for messages */}
+  return (
+    <div className="create-post-container">
+      <h2 className="page-title">Your Profile ({userRole})</h2>
+
       {message && (
         <div
           className={`message-banner ${
@@ -299,9 +310,9 @@ function UserProfile() {
         </div>
       )}
 
-      {/* This form class comes from CreatePost.css */}
       <div className="create-post-form">
-        <div className="form-group"> {/* Use form-group wrapper */}
+        {/* Common field for all roles */}
+        <div className="form-group">
           <label>Full name</label>
           <input
             className="form-input"
@@ -316,43 +327,101 @@ function UserProfile() {
           <input className="form-input" value={user.email || ""} disabled />
         </div>
 
-        <div className="form-group">
-          <label>Roll Number</label>
-          <input
-            className="form-input"
-            name="rollNumber"
-            value={user.rollNumber || ""}
-            onChange={handleChange}
-            placeholder="Add your roll number"
-          />
-        </div>
+        {/* Student-specific fields */}
+        {userRole === "student" && (
+          <>
+            <div className="form-group">
+              <label>Roll Number</label>
+              <input
+                className="form-input"
+                name="rollNumber"
+                value={user.rollNumber || ""}
+                onChange={handleChange}
+                placeholder="Add your roll number"
+              />
+            </div>
 
-        <div className="form-group">
-          <label>Course</label>
-          <input
-            className="form-input"
-            name="course"
-            value={user.course || ""}
-            onChange={handleChange}
-            placeholder="e.g. B.Tech Computer Science"
-          />
-        </div>
+            <div className="form-group">
+              <label>Course</label>
+              <input
+                className="form-input"
+                name="course"
+                value={user.course || ""}
+                onChange={handleChange}
+                placeholder="e.g. B.Tech Computer Science"
+              />
+            </div>
 
-        {/* This div now uses a class instead of inline style */}
-        <div className="form-group full-width">
-          <label>Department</label>
-          <input
-            className="form-input"
-            name="department"
-            value={user.department || ""}
-            onChange={handleChange}
-            placeholder="e.g. Computer Science"
-          />
-        </div>
+            <div className="form-group full-width">
+              <label>Department</label>
+              <input
+                className="form-input"
+                name="department"
+                value={user.department || ""}
+                onChange={handleChange}
+                placeholder="e.g. Computer Science"
+              />
+            </div>
+          </>
+        )}
+
+        {/* Faculty-specific fields */}
+        {userRole === "faculty" && (
+          <>
+            <div className="form-group">
+              <label>Employee ID</label>
+              <input
+                className="form-input"
+                name="employeeId"
+                value={user.employeeId || ""}
+                onChange={handleChange}
+                placeholder="Add your employee ID"
+              />
+            </div>
+
+            <div className="form-group full-width">
+              <label>Department</label>
+              <input
+                className="form-input"
+                name="department"
+                value={user.department || ""}
+                onChange={handleChange}
+                placeholder="e.g. Computer Science & Engineering"
+              />
+            </div>
+          </>
+        )}
+
+        {/* Admin/Staff-specific fields */}
+        {userRole === "staff" && (
+          <>
+            <div className="form-group">
+              <label>Staff ID</label>
+              <input
+                className="form-input"
+                name="staffId"
+                value={user.staffId || ""}
+                onChange={handleChange}
+                placeholder="Add your staff ID"
+              />
+            </div>
+
+            <div className="form-group full-width">
+              <label>Role/Position</label>
+              <input
+                className="form-input"
+                name="role"
+                value={user.role || ""}
+                onChange={handleChange}
+                placeholder="e.g. Administrative Officer"
+              />
+            </div>
+          </>
+        )}
 
         <div className="form-actions">
           <button
-            className="btn btn-primary page-action" // Use btn-primary
+            className="btn btn-primary page-action"
             onClick={handleSave}
             disabled={saving}
           >
@@ -361,7 +430,7 @@ function UserProfile() {
         </div>
       </div>
 
-      {/* --- INCOMING REQUESTS --- */}
+      {/* Ride request sections remain the same */}
       <div className="profile-section-list">
         <h3>Incoming Requests</h3>
         {loadingRequests ? (
@@ -390,7 +459,7 @@ function UserProfile() {
                 {reqItem.status === "pending" && (
                   <div className="request-card-actions">
                     <button
-                      className="btn btn-primary" //
+                      className="btn btn-primary"
                       onClick={() =>
                         handleRequestAction(reqItem._id, "accepted")
                       }
@@ -398,7 +467,7 @@ function UserProfile() {
                       Accept
                     </button>
                     <button
-                      className="btn btn-outline" //
+                      className="btn btn-outline"
                       onClick={() =>
                         handleRequestAction(reqItem._id, "rejected")
                       }
@@ -413,7 +482,6 @@ function UserProfile() {
         )}
       </div>
 
-      {/* --- OUTGOING REQUESTS --- */}
       <div className="profile-section-list">
         <h3>Outgoing Requests</h3>
         {loadingOutgoing ? (
@@ -443,7 +511,7 @@ function UserProfile() {
                   <div className="request-card-actions">
                     <a
                       href={`/chat/${reqItem.chatId}`}
-                      className="btn btn-ghost" //
+                      className="btn btn-ghost"
                     >
                       💬 Chat
                     </a>
@@ -455,7 +523,6 @@ function UserProfile() {
         )}
       </div>
 
-      {/* --- ACCEPTED RIDES --- */}
       <div className="profile-section-list">
         <h3>Accepted Rides</h3>
         {loadingAccepted ? (
@@ -489,7 +556,7 @@ function UserProfile() {
                       {item.chatId ? (
                         <a
                           href={`/chat/${item.chatId}`}
-                          className="btn btn-ghost" //
+                          className="btn btn-ghost"
                         >
                           💬 Chat
                         </a>

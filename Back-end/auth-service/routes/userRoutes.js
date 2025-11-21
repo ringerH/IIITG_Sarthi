@@ -1,7 +1,7 @@
 // auth-service/routes/userRoutes.js
 
 const express = require("express");
-const Student = require("../models/Students"); // Fixed path (lowercase 'models')
+const Student = require("../models/Students");
 const Faculty = require("../models/Faculty");
 const Admin = require("../models/Admin");
 const verifyAuth = require("../middleware/authMiddleware");
@@ -42,42 +42,64 @@ router.put("/me", verifyAuth, async (req, res) => {
     const updates = req.body || {};
 
     let Model = Student;
-    if (role === "faculty") Model = Faculty;
-    else if (role === "admin") Model = Admin;
+    let allowedFields = [];
+    
+    // Define allowed fields based on role
+    if (role === "faculty") {
+      Model = Faculty;
+      allowedFields = ["fullName", "department", "employeeId"];
+    } else if (role === "admin") {
+      Model = Admin;
+      allowedFields = ["fullName", "role", "staffId"];
+    } else {
+      // Default to Student
+      Model = Student;
+      allowedFields = ["fullName", "rollNumber", "course", "department"];
+    }
 
-    // Allowed fields per model (minimal whitelist)
-    const allowed = [
-      "fullName",
-      "rollNumber",
-      "course",
-      "department",
-      "employeeId",
-      "staffId",
-    ];
+    // Filter updates to only include allowed fields
     const patch = {};
-    Object.keys(updates).forEach((k) => {
-      if (allowed.includes(k)) patch[k] = updates[k];
+    Object.keys(updates).forEach((key) => {
+      if (allowedFields.includes(key)) {
+        patch[key] = updates[key];
+      }
     });
 
     if (Object.keys(patch).length === 0) {
       return res.status(400).json({ message: "No valid fields to update" });
     }
 
+    console.log(`Updating ${role} profile with:`, patch);
+
     const updated = await Model.findByIdAndUpdate(
       id,
       { $set: patch },
-      { new: true }
+      { new: true, runValidators: true }
     ).lean();
-    if (!updated) return res.status(404).json({ message: "User not found" });
+    
+    if (!updated) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    
     delete updated.password;
     return res.json({ success: true, user: updated });
   } catch (err) {
     console.error("Error updating profile:", err);
-    return res
-      .status(500)
-      .json({ message: "Error updating profile", error: err.message });
+    
+    // Provide more detailed error information
+    if (err.name === 'ValidationError') {
+      return res.status(400).json({ 
+        message: "Validation error", 
+        error: err.message,
+        details: err.errors 
+      });
+    }
+    
+    return res.status(500).json({ 
+      message: "Error updating profile", 
+      error: err.message 
+    });
   }
 });
-
 
 module.exports = router;
