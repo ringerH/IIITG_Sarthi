@@ -1,26 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { marketplaceApi } from '../api/config';
 import '../styles/marketplace.css';
-
-const marketplaceApi = axios.create({
-  baseURL: '/api/marketplace', // This should proxy correctly
-});
-
-marketplaceApi.interceptors.request.use(config => {
-  try {
-    const token = typeof window !== "undefined" ? localStorage.getItem("authToken") : null;
-    if (token) {
-      config.headers = config.headers || {};
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-  } catch (e) {
-    console.error('Error adding token:', e);
-  }
-  return config;
-}, error => {
-  return Promise.reject(error);
-});
 
 function MarketplaceProfile() {
   const navigate = useNavigate();

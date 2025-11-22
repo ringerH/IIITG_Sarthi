@@ -16,32 +16,34 @@ export default defineConfig({
     }
   },
   server: { 
-      port: 3000,
-      host: true,
-      watch: {
-        usePolling: true,
+    port: 3000,
+    host: true,
+    watch: {
+      usePolling: true,
+    },
+    proxy: {
+      '/api/auth': {
+        target: process.env.VITE_AUTH_URL || 'http://localhost:5001',
+        changeOrigin: true,
       },
-      proxy: {
-        '/api/auth': {
-          target: process.env.VITE_AUTH_URL || 'http://localhost:5001',
-          changeOrigin: true,
-        },
-      
-      '/api/ride': {
-        target: 'http://localhost:5000',
-        changeOrigin: true,
-        
-      },     
       '/api/user': {
-        target: 'http://localhost:5001',
+        target: process.env.VITE_AUTH_URL || 'http://localhost:5001',
         changeOrigin: true,
+      },
+      '/api/ride': {
+        target: process.env.VITE_RIDE_URL || 'http://localhost:5003',
+        changeOrigin: true,
+      },
+      '/api/listings': {
+        target: process.env.VITE_MARKETPLACE_URL || 'http://localhost:5000',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, '/api')
       },
       '/api/marketplace': {
-        target: 'http://localhost:5002',
+        target: process.env.VITE_MARKETPLACE_URL || 'http://localhost:5000',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api\/marketplace/, '/api')
       }
     }
   }
 })
-

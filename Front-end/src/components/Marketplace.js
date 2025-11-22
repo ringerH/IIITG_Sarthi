@@ -1,32 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-
+import { marketplaceApi } from '../api/config';
 import axios from 'axios';
 
 import { authApi } from '../api/config';
 
-// Ensure this file exists and is the one we updated
 import '../styles/marketplace.css'; 
 
-const marketplaceApi = axios.create({
-  baseURL: '/api/marketplace', 
-});
-
-marketplaceApi.interceptors.request.use(config => {
-  try {
-    const token =
-      typeof window !== "undefined"
-        ? localStorage.getItem("authToken")
-        : null;
-    if (token) {
-      config.headers = config.headers || {};
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-  } catch (e) {}
-  return config;
-}, error => {
-  return Promise.reject(error);
-});
 
 const listingService = {
   getAllListings: async () => {

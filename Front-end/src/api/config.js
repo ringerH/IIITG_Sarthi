@@ -1,8 +1,11 @@
 import axios from "axios";
 
+const isDocker = import.meta.env.VITE_DOCKER === 'true';
 // Ride service API (port 5001)
 const rideApi = axios.create({
-  baseURL: "http://localhost:5003/api",
+  baseURL: isDocker 
+  ? "http://localhost:5003/api" 
+  : "http://localhost:5003/api",
   headers: {
     "Content-Type": "application/json",
     Accept: "application/json",
@@ -13,7 +16,20 @@ const rideApi = axios.create({
 
 // Auth service API (port 5002)
 const authApi = axios.create({
-  baseURL: "http://localhost:5001/api",
+  baseURL: isDocker 
+    ? "http://localhost:5001/api" 
+    : "http://localhost:5001/api",
+  headers: {
+    "Content-Type": "application/json",
+    Accept: "application/json",
+  },
+  withCredentials: true,
+  timeout: 15000,
+});
+const marketplaceApi = axios.create({
+  baseURL: isDocker 
+    ? "http://localhost:5000/api" 
+    : "http://localhost:5000/api",
   headers: {
     "Content-Type": "application/json",
     Accept: "application/json",
@@ -39,6 +55,7 @@ const attachToken = (config) => {
 
 rideApi.interceptors.request.use(attachToken, (error) => Promise.reject(error));
 authApi.interceptors.request.use(attachToken, (error) => Promise.reject(error));
+marketplaceApi.interceptors.request.use(attachToken, (error) => Promise.reject(error));
 
 // Global response handler for 401
 const handle401 = (err) => {
@@ -76,9 +93,10 @@ const handle401 = (err) => {
 
 rideApi.interceptors.response.use((res) => res, handle401);
 authApi.interceptors.response.use((res) => res, handle401);
+marketplaceApi.interceptors.response.use((res) => res, handle401);
 
 // Default export for ride service (backward compatibility)
 export default rideApi;
 
 // Named exports for specific services
-export { rideApi, authApi };
+export { rideApi, authApi, marketplaceApi };
