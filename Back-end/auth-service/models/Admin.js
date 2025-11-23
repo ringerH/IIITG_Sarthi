@@ -7,7 +7,7 @@ const adminSchema = new mongoose.Schema(
 		staffId: { type: String, unique: true, sparse: true },
 		role: { type: String },
 		password: { type: String },
-		googleId: { type: String },
+		googleId: { type: String, unique: true, sparse: true },
 	},
 	{ timestamps: true }
 );

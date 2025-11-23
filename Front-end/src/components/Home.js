@@ -84,21 +84,46 @@ export default function Home() {
     const token =
       typeof window !== "undefined" ? localStorage.getItem("authToken") : null;
     try {
-      const payload = {
-        fullName: profile.fullName,
-        rollNumber: profile.rollNumber,
-        course: profile.course,
-        department: profile.department,
-      };
+      // Build payload based on role
+      const payload = { fullName: profile.fullName };
+      const userRole = profile.role || "student";
+      
+      if (userRole === "student") {
+        payload.rollNumber = profile.rollNumber;
+        payload.course = profile.course;
+        payload.department = profile.department;
+      } else if (userRole === "faculty") {
+        payload.department = profile.department;
+        payload.employeeId = profile.employeeId;
+      } else if (userRole === "admin" || userRole === "staff") {
+        payload.staffId = profile.staffId;
+        payload.role = profile.role; // Job title field
+      }
       
       const res = await authApi.put("/user/me", payload);
       if (res.data && res.data.user) {
-        setProfile(res.data.user);
-        setStoredUser(res.data.user);
+        const updatedUser = res.data.user;
+        
+        // Update state immediately
+        setProfile(updatedUser);
+        setStoredUser(updatedUser);
+        
         try {
-          localStorage.setItem("user", JSON.stringify(res.data.user));
+          localStorage.setItem("user", JSON.stringify(updatedUser));
+          
+          // Update token if backend sent a new one
+          if (res.data.token) {
+            localStorage.setItem("authToken", res.data.token);
+            console.log("[Home] Updated authToken in localStorage");
+          }
         } catch (e) {}
-        setProfileMessage("Profile saved");
+        
+        setProfileMessage("Profile saved! Refreshing...");
+        
+        // Force a page reload to ensure all components pick up the new data
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
       } else {
         setProfileMessage("Failed to save");
       }
@@ -292,36 +317,93 @@ export default function Home() {
                 <label>Email</label>
                 <div className="value">{profile.email}</div>
               </div>
-              <div className="profile-row">
-                <label>Roll number</label>
-                <input
-                  name="rollNumber"
-                  className="form-input"
-                  value={profile.rollNumber || ""}
-                  onChange={handleProfileChange}
-                  placeholder="Add your roll number"
-                />
-              </div>
-              <div className="profile-row">
-                <label>Course</label>
-                <input
-                  name="course"
-                  className="form-input"
-                  value={profile.course || ""}
-                  onChange={handleProfileChange}
-                  placeholder="e.g. B.Tech Computer Science"
-                />
-              </div>
-              <div className="profile-row">
-                <label>Department</label>
-                <input
-                  name="department"
-                  className="form-input"
-                  value={profile.department || ""}
-                  onChange={handleProfileChange}
-                  placeholder="e.g. Computer Science"
-                />
-              </div>
+              
+              {/* Show role-specific fields */}
+              {profile.role === "student" && (
+                <>
+                  <div className="profile-row">
+                    <label>Roll number</label>
+                    <input
+                      name="rollNumber"
+                      className="form-input"
+                      value={profile.rollNumber || ""}
+                      onChange={handleProfileChange}
+                      placeholder="Add your roll number"
+                    />
+                  </div>
+                  <div className="profile-row">
+                    <label>Course</label>
+                    <input
+                      name="course"
+                      className="form-input"
+                      value={profile.course || ""}
+                      onChange={handleProfileChange}
+                      placeholder="e.g. B.Tech Computer Science"
+                    />
+                  </div>
+                  <div className="profile-row">
+                    <label>Department</label>
+                    <input
+                      name="department"
+                      className="form-input"
+                      value={profile.department || ""}
+                      onChange={handleProfileChange}
+                      placeholder="e.g. Computer Science"
+                    />
+                  </div>
+                </>
+              )}
+              
+              {profile.role === "faculty" && (
+                <>
+                  <div className="profile-row">
+                    <label>Employee ID</label>
+                    <input
+                      name="employeeId"
+                      className="form-input"
+                      value={profile.employeeId || ""}
+                      onChange={handleProfileChange}
+                      placeholder="Add your employee ID"
+                    />
+                  </div>
+                  <div className="profile-row">
+                    <label>Department</label>
+                    <input
+                      name="department"
+                      className="form-input"
+                      value={profile.department || ""}
+                      onChange={handleProfileChange}
+                      placeholder="e.g. Computer Science & Engineering"
+                    />
+                  </div>
+                </>
+              )}
+              
+              {profile.role === "staff" && (
+                <>
+                  <div className="profile-row">
+                    <label>Staff ID</label>
+                    <input
+                      name="staffId"
+                      className="form-input"
+                      value={profile.staffId || ""}
+                      onChange={handleProfileChange}
+                      placeholder="Add your staff ID"
+                    />
+                  </div>
+                  <div className="profile-row">
+                    <label>Role/Position</label>
+                    <input
+                      name="role"
+                      className="form-input"
+                      value={profile.role || ""}
+                      onChange={handleProfileChange}
+                      placeholder="e.g. Administrative Officer"
+                    />
+                  </div>
+                </>
+              )}
+              
               {profileMessage && (
                 <div style={{ marginTop: 8 }} className="subtitle">
                   {profileMessage}
@@ -354,4 +436,3 @@ export default function Home() {
     </div>
   );
 }
-

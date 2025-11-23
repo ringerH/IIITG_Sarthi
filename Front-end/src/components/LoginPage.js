@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import axios from "axios";
-import "../App.css"; // Uses styles from App.css
+import "../App.css";
 
-// Get Google Client ID from environment variables
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || "http://localhost:5001";
@@ -15,7 +14,6 @@ function LoginPage() {
   const navigate = useNavigate();
   const googleButtonRef = useRef(null);
 
-  // Get role from URL query params (default to 'student')
   const role = searchParams.get("role") || "student";
   const existingToken =
     typeof window !== "undefined" ? localStorage.getItem("authToken") : null;
@@ -32,12 +30,10 @@ function LoginPage() {
       localStorage.removeItem("authToken");
       localStorage.removeItem("user");
     }
-    // Reload to clear state and re-initialize login flow
     window.location.reload();
   };
 
   useEffect(() => {
-    // If user is already logged in, don't initialize Google Sign-In
     if (existingToken) {
       return;
     }
@@ -52,7 +48,6 @@ function LoginPage() {
       document.body.appendChild(script);
     }
 
-    // Initialize Google Sign-In
     const initializeGoogleSignIn = () => {
       if (!window.google?.accounts?.id) return;
 
@@ -63,7 +58,6 @@ function LoginPage() {
         callback: handleGoogleResponse,
       });
 
-      // Render the Google Sign-In button
       if (googleButtonRef.current) {
         window.google.accounts.id.renderButton(googleButtonRef.current, {
           theme: "outline",
@@ -73,11 +67,9 @@ function LoginPage() {
         });
       }
 
-      // Enable One Tap sign-in
       window.google.accounts.id.prompt();
     };
 
-    // Wait for Google script to load
     const checkGoogleLoaded = setInterval(() => {
       if (window.google?.accounts?.id) {
         clearInterval(checkGoogleLoaded);
@@ -88,7 +80,7 @@ function LoginPage() {
     return () => {
       clearInterval(checkGoogleLoaded);
     };
-  }, [role, existingToken]); // Add existingToken to dependency array
+  }, [role, existingToken]);
 
   const handleGoogleResponse = async (response) => {
     const tokenId = response?.credential;
@@ -102,7 +94,7 @@ function LoginPage() {
     setError("");
 
     try {
-      console.log("Sending token to backend...");
+      console.log("Sending token to backend for role:", role);
 
       const res = await axios.post(
         `${API_BASE_URL}/api/auth/google`,
@@ -114,17 +106,29 @@ function LoginPage() {
         }
       );
 
-      // Backend returns { token, user } on success
+      console.log("Backend response:", res.data);
+
       if (res.data && res.data.token) {
+        // Store the token
         localStorage.setItem("authToken", res.data.token);
 
+        // IMPORTANT: Ensure the user object includes the role
         if (res.data.user) {
-          localStorage.setItem("user", JSON.stringify(res.data.user));
+          const userWithRole = {
+            ...res.data.user,
+            role: res.data.user.role // Explicitly include role
+          };
+          
+          console.log("Storing user with role:", userWithRole);
+          localStorage.setItem("user", JSON.stringify(userWithRole));
         }
 
-        console.log("Login successful!");
-        // Redirect to Home after successful login
-        navigate("/Home");
+        console.log("Login successful! Role:", res.data.user?.role);
+        
+        // Small delay to ensure localStorage is updated
+        setTimeout(() => {
+          navigate("/Home");
+        }, 100);
       } else {
         setError("Login failed. Please try again.");
       }
@@ -140,7 +144,6 @@ function LoginPage() {
     }
   };
 
-  // Capitalize the role for display
   const displayRole = role.charAt(0).toUpperCase() + role.slice(1);
 
   return (
@@ -165,25 +168,25 @@ function LoginPage() {
               <p>
                 Signed in as{" "}
                 <strong>{parsedUser?.fullName || parsedUser?.email}</strong>
+                {parsedUser?.role && ` (${parsedUser.role})`}
               </p>
               <div className="role-buttons">
                 <button
                   onClick={handleContinue}
-                  className="btn btn-primary" // Use CSS class
-                  style={{ flex: 1 }} // Add flex for layout
+                  className="btn btn-primary"
+                  style={{ flex: 1 }}
                 >
                   Continue to Home
                 </button>
                 <button
                   onClick={handleSignOut}
-                  className="btn btn-ghost" // Use CSS class
+                  className="btn btn-ghost"
                 >
                   Sign out
                 </button>
               </div>
             </div>
           ) : (
-            // Only render the Google button div if not logged in
             <div ref={googleButtonRef}></div>
           )}
         </div>
@@ -193,7 +196,6 @@ function LoginPage() {
           <div className="role-buttons">
             <Link
               to="/auth?role=student"
-              // Use button classes from App.css
               className={`btn btn-outline ${
                 role === "student" ? "active" : ""
               }`}
@@ -211,7 +213,7 @@ function LoginPage() {
             <Link
               to="/auth?role=staff" 
               className={`btn btn-outline ${
-                role === "staff" ? "active" : "" // Renamed from "admin"
+                role === "staff" ? "active" : ""
               }`}
             >
               Staff

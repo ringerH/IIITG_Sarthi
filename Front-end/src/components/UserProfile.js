@@ -33,6 +33,10 @@ function UserProfile() {
         console.log("[UserProfile] Profile response:", res.data);
         if (res.data && res.data.user) {
           setUser(res.data.user);
+          // Update localStorage with fresh user data
+          try {
+            localStorage.setItem("user", JSON.stringify(res.data.user));
+          } catch (e) {}
         } else {
           setMessage("Failed to load profile");
         }
@@ -237,8 +241,8 @@ function UserProfile() {
       // Build payload based on user role
       const payload = { fullName: user.fullName };
       
-      // Get role from user object or localStorage
-      const userRole = user.role || JSON.parse(localStorage.getItem("user") || "{}")?.role || "student";
+      // Use role from user object
+      const userRole = user.role || "student";
       
       // Add role-specific fields
       if (userRole === "student") {
@@ -248,18 +252,37 @@ function UserProfile() {
       } else if (userRole === "faculty") {
         payload.department = user.department;
         payload.employeeId = user.employeeId;
-      } else if (userRole === "admin") {
+      } else if (userRole === "admin" || userRole === "staff") {
         payload.staffId = user.staffId;
-        payload.role = user.role; // Admin role field
+        payload.role = user.role; // Admin role field (job title, not user role)
       }
       
       const res = await authApi.put("/user/me", payload);
       if (res.data && res.data.user) {
-        setUser(res.data.user);
+        const updatedUser = res.data.user;
+        
+        // Update state immediately
+        setUser(updatedUser);
+        
+        // IMPORTANT: Update localStorage with both new user data AND new token
         try {
-          localStorage.setItem("user", JSON.stringify(res.data.user));
-        } catch (e) {}
-        setMessage("Profile updated successfully");
+          localStorage.setItem("user", JSON.stringify(updatedUser));
+          
+          // If backend sent a new token, update it
+          if (res.data.token) {
+            localStorage.setItem("authToken", res.data.token);
+            console.log("[UserProfile] Updated authToken in localStorage");
+          }
+        } catch (e) {
+          console.error("Error updating localStorage:", e);
+        }
+        
+        setMessage("Profile updated successfully! Refreshing...");
+        
+        // Force a page reload to ensure all components pick up the new data
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
       } else {
         setMessage("Failed to save profile");
       }
@@ -275,7 +298,7 @@ function UserProfile() {
 
   // Helper to get user role
   const getUserRole = () => {
-    return user?.role || JSON.parse(localStorage.getItem("user") || "{}")?.role || "student";
+    return user?.role || "student";
   };
 
   if (loading) {

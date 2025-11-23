@@ -23,6 +23,12 @@ router.get("/me", verifyAuth, async (req, res) => {
     const user = await Model.findById(id).lean();
     if (!user) return res.status(404).json({ message: "User not found" });
 
+    // FIX: Inject the role from the token if not present in the doc (for Student/Faculty)
+    // The Admin model has a 'role' field (job title), so we don't overwrite it if it exists.
+    if (!user.role) {
+      user.role = role;
+    }
+
     // Remove sensitive fields
     delete user.password;
     return res.json({ success: true, user });
@@ -79,6 +85,11 @@ router.put("/me", verifyAuth, async (req, res) => {
     
     if (!updated) {
       return res.status(404).json({ message: "User not found" });
+    }
+    
+    // FIX: Inject the role here as well so the frontend state doesn't lose it on update
+    if (!updated.role) {
+      updated.role = role;
     }
     
     delete updated.password;

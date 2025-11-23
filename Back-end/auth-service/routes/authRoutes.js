@@ -35,6 +35,9 @@ router.post("/auth/google", async (req, res) => {
 
   // Default to 'student' role if not provided
   const requestedRole = (rawRole || "student").toLowerCase();
+  
+  // Map "staff" to "admin" for consistency
+  const normalizedRole = requestedRole === "staff" ? "admin" : requestedRole;
 
   if (!tokenId) {
     return res
@@ -57,15 +60,15 @@ router.post("/auth/google", async (req, res) => {
     const isIIITGEmail = info.email && info.email.endsWith("@" + expectedDomain);
     
     
-    if (requestedRole !== "staff" && !isIIITGEmail) {
-      console.warn(`Non-IIITG email attempted login as ${requestedRole}:`, info.email);
+    if (normalizedRole !== "admin" && !isIIITGEmail) {
+      console.warn(`Non-IIITG email attempted login as ${normalizedRole}:`, info.email);
       return res.status(401).json({ 
         success: false, 
         message: "Students and Faculty must use @iiitg.ac.in email addresses." 
       });
     }
     
-    console.log(`Email domain check passed for ${requestedRole}:`, info.email);
+    console.log(`Email domain check passed for ${normalizedRole}:`, info.email);
 
     
     const expectedAud = process.env.GOOGLE_CLIENT_ID;
@@ -112,19 +115,19 @@ router.post("/auth/google", async (req, res) => {
       }
       
       // Warn if user is trying to login with a different role
-      if (requestedRole !== finalRole) {
+      if (normalizedRole !== finalRole) {
         console.warn(
-          `User ${email} registered as ${finalRole} but trying to login as ${requestedRole}`
+          `User ${email} registered as ${finalRole} but trying to login as ${normalizedRole}`
         );
       }
     } else {
       // No existing user - create new user in requested role collection
-      if (requestedRole === "faculty") {
+      if (normalizedRole === "faculty") {
         Model = Faculty;
         finalRole = "faculty";
-      } else if (requestedRole === "staff") {
+      } else if (normalizedRole === "admin") {
         Model = Admin;
-        finalRole = "staff";
+        finalRole = "admin";
       } else {
         Model = Student;
         finalRole = "student";
