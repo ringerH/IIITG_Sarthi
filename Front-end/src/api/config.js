@@ -1,11 +1,14 @@
 import axios from "axios";
 
-const isDocker = import.meta.env.VITE_DOCKER === 'true';
-// Ride service API (port 5001)
+// USE environment variables for the base URLs
+// If the env var is missing (local dev), it falls back to localhost
+const rideBaseURL = import.meta.env.VITE_RIDE_URL || "http://localhost:5003";
+const authBaseURL = import.meta.env.VITE_AUTH_URL || "http://localhost:5001";
+const marketplaceBaseURL = import.meta.env.VITE_MARKETPLACE_URL || "http://localhost:5000";
+
+// Ride service API
 const rideApi = axios.create({
-  baseURL: isDocker 
-  ? "http://localhost:5003/api" 
-  : "http://localhost:5003/api",
+  baseURL: `${rideBaseURL}/api`, 
   headers: {
     "Content-Type": "application/json",
     Accept: "application/json",
@@ -14,11 +17,9 @@ const rideApi = axios.create({
   timeout: 15000,
 });
 
-// Auth service API (port 5002)
+// Auth service API
 const authApi = axios.create({
-  baseURL: isDocker 
-    ? "http://localhost:5001/api" 
-    : "http://localhost:5001/api",
+  baseURL: `${authBaseURL}/api`,
   headers: {
     "Content-Type": "application/json",
     Accept: "application/json",
@@ -26,10 +27,10 @@ const authApi = axios.create({
   withCredentials: true,
   timeout: 15000,
 });
+
+// Marketplace service API
 const marketplaceApi = axios.create({
-  baseURL: isDocker 
-    ? "http://localhost:5000/api" 
-    : "http://localhost:5000/api",
+  baseURL: `${marketplaceBaseURL}/api`,
   headers: {
     "Content-Type": "application/json",
     Accept: "application/json",
@@ -81,7 +82,7 @@ const handle401 = (err) => {
             try {
               window.location.href = "/auth";
             } catch (e) {}
-          }, 1000); // Increased delay so user can see error message
+          }, 1000); 
         }
       } catch (e) {
         console.error("Auth redirect guard error", e);

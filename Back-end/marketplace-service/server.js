@@ -11,7 +11,8 @@ const corsOptions = {
       'http://127.0.0.1:3000',
       'http://localhost:5173',
       'http://127.0.0.1:5173',
-      'http://campus_frontend:3000' // Add Docker container name
+      'http://campus_frontend:3000',
+      process.env.FRONTEND_URL // <--- ADDED for Production
     ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
@@ -35,7 +36,7 @@ const userRoutes = require('./backend/routes/userRoutes');
 
 // Routes
 app.use('/api/listings', listingRoutes);
-app.use('/api/user', userRoutes); // NEW
+app.use('/api/user', userRoutes); 
 
 // Health check endpoint
 app.get('/health', (req, res) => {

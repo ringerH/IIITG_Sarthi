@@ -15,6 +15,7 @@ const DEFAULT_FRONTEND_ORIGINS = [
   "http://localhost:3000",
   "http://127.0.0.1:5173",
   "http://127.0.0.1:3000",
+  process.env.FRONTEND_ORIGIN
 ];
 const FRONTEND_ORIGIN =
   process.env.FRONTEND_ORIGIN || DEFAULT_FRONTEND_ORIGINS[0];
@@ -48,8 +49,8 @@ app.use((req, res, next) => {
 
 // Use ride and auth routes under /api
 app.use("/api", rideRoutes);
-// app.use("/api", authRoutes); // ⬅️ REMOVE THIS
-app.use("/api/user", userRoutes); // ⬅️ KEEP THIS for ride requests
+// app.use("/api", authRoutes); 
+app.use("/api/user", userRoutes); 
 
 // Error handling middleware
 app.use((err, req, res, next) => {
@@ -79,17 +80,13 @@ const socketUtil = require("./utils/socket");
 socketUtil.setIO(io);
 
 io.on("connection", (socket) => {
-    // ... all your io.on() logic here ...
     console.log("Socket connected:", socket.id);
-    // ...
 });
 
 
-// ... all your startServer logic remains exactly the same ...
-// (startServer code omitted for brevity)
+
 const startServer = (port) => {
     server.on("error", (err) => {
-        // ... all your server.on('error') logic here ...
     });
     
     server.listen(port, () => {
