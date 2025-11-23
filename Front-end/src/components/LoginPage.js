@@ -5,7 +5,7 @@ import "../App.css";
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:5001";
+  import.meta.env.VITE_AUTH_URL || "http://localhost:5001";
 
 function LoginPage() {
   const [error, setError] = useState("");
