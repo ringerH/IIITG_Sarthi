@@ -24,8 +24,8 @@ Sarthi is a comprehensive microservices-based web application designed for the I
 The application was built to address specific needs within the campus ecosystem, focusing on trust and role-based access.
 
 **📄 Detailed Requirements:**
-- [Software Requirements Specification v1.0](docs\SRS_v1.pdf)
-- [Software Requirements Specification v2.0](docs\SRS_v2.pdf)
+- [Software Requirements Specification v1.0](docs/SRS_v1.pdf)
+- [Software Requirements Specification v2.0](docs/SRS_v2.pdf)
 
 ### Core Modules
 
@@ -49,9 +49,9 @@ The application was built to address specific needs within the campus ecosystem,
 The system follows a **Microservices Architecture**, separating concerns into distinct, independently deployable services.
 
 **📐 Architecture Diagrams:**
-- [High Level Diagram](docs\sarthiHLDD.png)
-- [Use Case diagram](docs\sarthiUSECASE.png)
-- [Design Doc](docs\design_doc.pdf)
+- [High Level Diagram](docs/arthiHLDD.png)
+- [Use Case diagram](docs/sarthiUSECASE.png)
+- [Design Doc](docs/design_doc.pdf)
 ### Service Breakdown
 
 1. **Auth Service** (`/Back-end/auth-service`):
