@@ -15,7 +15,6 @@ Sarthi is a comprehensive microservices-based web application designed for the I
 - [Getting Started](#getting-started)
 - [Screenshots](#screenshots)
 - [Documentation](#documentation)
-- [Test cases](#test-cases-&-coverage)
 - [Contributing](#contributing)
 - [License](#license)
 - [Report](docs/Report_final.pdf.pdf)
@@ -109,7 +108,11 @@ Integration is handled through RESTful APIs and WebSockets, ensuring seamless co
 ## 5. Testing
 
 We employ a robust testing strategy covering both API logic and End-to-End (E2E) user flows.
+### Test Cases
+Our testing strategy covers both System-level user flows (via Cypress) and API Contract logic (via Postman). Below are the specific test cases automated in this repository.
 
+
+---
 ### Postman (API Testing)
 
 * Collection: `Sarthi API.postman_collection.json`
@@ -117,7 +120,18 @@ We employ a robust testing strategy covering both API logic and End-to-End (E2E)
     * User authentication flows.
     * CRUD operations for Rides and Marketplace listings.
     * Socket connection validation.
+### A. Integration Testing (API)
+*Automated using Postman Collection `Sarthi API.postman_test_run.json`*
 
+| ID | Service | Endpoint | Test Description | Assertions |
+| :--- | :--- | :--- | :--- | :--- |
+| **API-01** | **Auth** | `POST /auth/google` | Validate Google Login logic | Status 200; Token exists in response |
+| **API-02** | **Auth** | `GET /user/me` | Fetch User Profile | Status 200; Email field matches token |
+| **API-03** | **Auth** | `PUT /user/me` | Update User Details | Status 200; `fullName` updates correctly |
+| **API-04** | **Ride** | `POST /rides` | Create a Ride | Status 201; Response contains Ride ID |
+| **API-05** | **Ride** | `GET /rides` | Fetch All Rides | Status 200; Response is an Array |
+| **API-06** | **Market** | `POST /listings` | Create Listing | Status 201; Response contains Listing Title |
+| **API-07** | **Market** | `GET /listings` | Fetch All Listings | Status 200; Response is an Array |
 ### Cypress (E2E Testing)
 
 Located in `Front-end/cypress/e2e`, our suites simulate real user behavior:
@@ -127,11 +141,27 @@ Located in `Front-end/cypress/e2e`, our suites simulate real user behavior:
 3. `03-marketplace.cy.js`: Validates adding items to the marketplace.
 4. `04-user-profile.cy.js`: Ensures profile updates persist correctly.
 5. `05-error-handling.cy.js`: Checks system resilience against network failures or invalid inputs.
+### B. System Testing (End-to-End)
+*Automated using Cypress in `cypress/e2e`*
+
+| ID | Module | Test Scenario | Expected Outcome | Source File |
+| :--- | :--- | :--- | :--- | :--- |
+| **TC-01** | **Auth** | User logs in as Student | Redirects to Home; "Welcome" message visible | `01-authentication.cy.js` |
+| **TC-02** | **Ride** | Navigate to "Offer a Ride" | URL changes to `/create-ride`; Form loads | `02-create-ride.cy.js` |
+| **TC-03** | **Ride** | Submit Ride Form | API returns 201; Redirects to Home; Success alert | `02-create-ride.cy.js` |
+| **TC-04** | **Ride** | Submit Empty Form | HTML5 validation prevents submission | `02-create-ride.cy.js` |
+| **TC-05** | **Market** | View Marketplace | Page loads; Listings are visible | `03-marketplace.cy.js` |
+| **TC-06** | **Market** | Open "Sell Item" Form | Clicking "+ Sell Item" reveals input fields | `03-marketplace.cy.js` |
+| **TC-07** | **Market** | Create New Listing | Form fills correctly; "Publish" triggers 201 POST | `03-marketplace.cy.js` |
+| **TC-08** | **Profile** | View Profile Data | User details (Name, Dept) populate input fields | `04-user-profile.cy.js` |
+| **TC-09** | **Profile** | Update Profile | Changing name and clicking "Save" updates UI | `04-user-profile.cy.js` |
+| **TC-10** | **Error** | Backend Failure (500) | UI displays "Internal Server Error" message gracefully | `05-error-handling.cy.js` |
+| **TC-11** | **Error** | Network Disconnect | Marketplace shows "Network Error" state | `05-error-handling.cy.js` |
+| **TC-12** | **Error** | Unauthorized Access (401) | Profile page shows "Authentication Failed" | `05-error-handling.cy.js` |
 
 To run tests:
-
+In root directory
 ```bash
-cd Front-end
 npx cypress open
 ```
 
@@ -245,41 +275,6 @@ For detailed documentation on specific topics, please refer to the `/docs` direc
 
 * [API Documentation](docs/API.md) - Complete API reference for all services
 
-## 7. Test Cases & Coverage
-
-Our testing strategy covers both System-level user flows (via Cypress) and API Contract logic (via Postman). Below are the specific test cases automated in this repository.
-
-### A. System Testing (End-to-End)
-*Automated using Cypress in `cypress/e2e`*
-
-| ID | Module | Test Scenario | Expected Outcome | Source File |
-| :--- | :--- | :--- | :--- | :--- |
-| **TC-01** | **Auth** | User logs in as Student | Redirects to Home; "Welcome" message visible | `01-authentication.cy.js` |
-| **TC-02** | **Ride** | Navigate to "Offer a Ride" | URL changes to `/create-ride`; Form loads | `02-create-ride.cy.js` |
-| **TC-03** | **Ride** | Submit Ride Form | API returns 201; Redirects to Home; Success alert | `02-create-ride.cy.js` |
-| **TC-04** | **Ride** | Submit Empty Form | HTML5 validation prevents submission | `02-create-ride.cy.js` |
-| **TC-05** | **Market** | View Marketplace | Page loads; Listings are visible | `03-marketplace.cy.js` |
-| **TC-06** | **Market** | Open "Sell Item" Form | Clicking "+ Sell Item" reveals input fields | `03-marketplace.cy.js` |
-| **TC-07** | **Market** | Create New Listing | Form fills correctly; "Publish" triggers 201 POST | `03-marketplace.cy.js` |
-| **TC-08** | **Profile** | View Profile Data | User details (Name, Dept) populate input fields | `04-user-profile.cy.js` |
-| **TC-09** | **Profile** | Update Profile | Changing name and clicking "Save" updates UI | `04-user-profile.cy.js` |
-| **TC-10** | **Error** | Backend Failure (500) | UI displays "Internal Server Error" message gracefully | `05-error-handling.cy.js` |
-| **TC-11** | **Error** | Network Disconnect | Marketplace shows "Network Error" state | `05-error-handling.cy.js` |
-| **TC-12** | **Error** | Unauthorized Access (401) | Profile page shows "Authentication Failed" | `05-error-handling.cy.js` |
-
-### B. Integration Testing (API)
-*Automated using Postman Collection `Sarthi API.postman_test_run.json`*
-
-| ID | Service | Endpoint | Test Description | Assertions |
-| :--- | :--- | :--- | :--- | :--- |
-| **API-01** | **Auth** | `POST /auth/google` | Validate Google Login logic | Status 200; Token exists in response |
-| **API-02** | **Auth** | `GET /user/me` | Fetch User Profile | Status 200; Email field matches token |
-| **API-03** | **Auth** | `PUT /user/me` | Update User Details | Status 200; `fullName` updates correctly |
-| **API-04** | **Ride** | `POST /rides` | Create a Ride | Status 201; Response contains Ride ID |
-| **API-05** | **Ride** | `GET /rides` | Fetch All Rides | Status 200; Response is an Array |
-| **API-06** | **Market** | `POST /listings` | Create Listing | Status 201; Response contains Listing Title |
-| **API-07** | **Market** | `GET /listings` | Fetch All Listings | Status 200; Response is an Array |
----
 
 ## Contributing
 
