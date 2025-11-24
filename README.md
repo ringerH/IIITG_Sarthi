@@ -16,7 +16,7 @@ Sarthi is a comprehensive microservices-based web application designed for the I
 - [Documentation](#documentation)
 - [Contributing](#contributing)
 - [License](#license)
-
+- [Report](docs/Report.pdf)
 ---
 
 ## 1. Requirement Analysis
@@ -52,7 +52,7 @@ The system follows a **Microservices Architecture**, separating concerns into di
 - [High Level Diagram](docs/arthiHLDD.png)
 - [Class diagram](docs/sarthi_class.png)
 - [Use Case diagram](docs/sarthiUSECASE.png)
-- [Design Doc](docs/design_doc.pdf)
+- [Design Doc](docs/design_doc_final.pdf)
 ### Service Breakdown
 
 1. **Auth Service** (`/Back-end/auth-service`):
