@@ -13,6 +13,7 @@ Sarthi is a comprehensive microservices-based web application designed for the I
 - [Testing](#5-testing)
 - [Production](#6-production-docker--render)
 - [Getting Started](#getting-started)
+- [Screenshots](#screenshots)
 - [Documentation](#documentation)
 - [Contributing](#contributing)
 - [License](#license)
@@ -218,7 +219,23 @@ cd Back-end/ride-service && npm start
 cd Back-end/marketplace-service && npm start
 cd Front-end && npm run dev
 ```
+## Screenshots
 
+### Home Page
+![Home Page](docs/home.jpg)
+
+### Ride Sharing Interface
+![Ride Sharing](docs/rides.png)
+
+### Marketplace
+![Marketplace](docs/lsiting.png)
+
+### User Profile
+![User Profile(ride)](docs/profile.png)
+![User Profile(marketplace)](docs/marketprofile.png)
+
+### Real-time Chat
+![Chat Interface](docs/chat.png)
 ---
 
 ## Documentation
