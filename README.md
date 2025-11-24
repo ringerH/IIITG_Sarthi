@@ -134,7 +134,7 @@ Our testing strategy covers both System-level user flows (via Cypress) and API C
 | **API-07** | **Market** | `GET /listings` | Fetch All Listings | Status 200; Response is an Array |
 ### Cypress (E2E Testing)
 
-Located in `Front-end/cypress/e2e`, our suites simulate real user behavior:
+Located in `cypress/e2e`, our suites simulate real user behavior:
 
 1. `01-authentication.cy.js`: Verifies Google Login and Role selection.
 2. `02-create-ride.cy.js`: Tests the flow of creating and publishing a ride.
