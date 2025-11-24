@@ -226,8 +226,6 @@ cd Front-end && npm run dev
 For detailed documentation on specific topics, please refer to the `/docs` directory:
 
 * [API Documentation](docs/API.md) - Complete API reference for all services
-* [Architecture Guide](docs/ARCHITECTURE.md) - Deep dive into system design
-* [Deployment Guide](docs/DEPLOYMENT.md) - Step-by-step deployment instructions
 
 
 ---
