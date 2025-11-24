@@ -50,6 +50,7 @@ The system follows a **Microservices Architecture**, separating concerns into di
 
 **📐 Architecture Diagrams:**
 - [High Level Diagram](docs/arthiHLDD.png)
+- [Class diagram](docs/sarthi_class.png)
 - [Use Case diagram](docs/sarthiUSECASE.png)
 - [Design Doc](docs/design_doc.pdf)
 ### Service Breakdown
