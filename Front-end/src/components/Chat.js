@@ -5,6 +5,8 @@ import { io } from "socket.io-client";
 import "../styles/chat.css"; 
 import "../App.css"; 
 
+const RIDE_SERVICE_URL = import.meta.env.VITE_RIDE_URL || "http://localhost:5003";
+
 export default function Chat() {
   const { id } = useParams();
   const [chat, setChat] = useState(null);
@@ -45,8 +47,9 @@ export default function Chat() {
     };
 
     fetchChat();
-
-    const socket = io("http://localhost:5003", { withCredentials: true });
+    // Add this line to get the correct URL from environment variables
+   
+    const socket = io(RIDE_SERVICE_URL, { withCredentials: true });
     socketRef.current = socket;
 
     socket.on("connect", () => {

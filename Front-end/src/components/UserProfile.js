@@ -22,7 +22,7 @@ function UserProfile() {
   const [acceptedRequests, setAcceptedRequests] = useState([]);
   const [loadingAccepted, setLoadingAccepted] = useState(false);
   const [acceptedError, setAcceptedError] = useState("");
-
+  const RIDE_SERVICE_URL = import.meta.env.VITE_RIDE_URL || "http://localhost:5003";
   useEffect(() => {
     const fetchProfile = async () => {
       setLoading(true);
@@ -113,7 +113,7 @@ function UserProfile() {
     if (!userId) return;
 
     try {
-      const socket = io("http://localhost:5003", { withCredentials: true });
+      const socket = io(RIDE_SERVICE_URL, { withCredentials: true });
       socketRef.current = socket;
 
       socket.on("connect", () => {

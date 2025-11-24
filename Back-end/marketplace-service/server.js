@@ -12,7 +12,7 @@ const corsOptions = {
       'http://localhost:5173',
       'http://127.0.0.1:5173',
       'http://campus_frontend:3000',
-      process.env.FRONTEND_URL // <--- ADDED for Production
+      process.env.FRONTEND_URL 
     ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],

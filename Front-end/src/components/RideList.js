@@ -13,8 +13,8 @@ import "../App.css"; // For .btn, .page-header, etc.
 
 
 // NOTE: This URL is intentionally hard-coded as it points to a specific service.
-
-const RIDES_API_URL = "http://localhost:5003/api/rides";
+const BASE_URL = import.meta.env.VITE_RIDE_URL || "http://localhost:5003";
+const RIDES_API_URL =`${BASE_URL}/api/rides`;
 
 
 
