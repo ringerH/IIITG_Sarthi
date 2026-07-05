@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const mongoose = require("mongoose");
 const { createRide, getRides } = require("../Controllers/rideController");
 const verifyAuth = require("../middleware/authMiddleware");
 const optionalAuth = require("../middleware/optionalAuth");
@@ -35,18 +36,16 @@ router.post("/rides/:id/join", verifyAuth, async (req, res) => {
     // If ride.ownerId is missing but ownerEmail exists, try to find owner's user id
     let ownerId = ride.ownerId || null;
     if (!ownerId && ride.ownerEmail) {
-      // search across user collections
-      const Student = require("../Models/Students");
-      const Faculty = require("../Models/Faculty");
-      const Admin = require("../Models/Admin");
-      const foundStudent = await Student.findOne({ email: ride.ownerEmail });
+      // Search across user collections directly via MongoDB collections
+      const db = mongoose.connection.db;
+      const foundStudent = await db.collection("students").findOne({ email: ride.ownerEmail });
       const foundFaculty = !foundStudent
-        ? await Faculty.findOne({ email: ride.ownerEmail })
+        ? (await db.collection("faculties").findOne({ email: ride.ownerEmail }) ||
+           await db.collection("faculty").findOne({ email: ride.ownerEmail }))
         : null;
-      const foundAdmin =
-        !foundStudent && !foundFaculty
-          ? await Admin.findOne({ email: ride.ownerEmail })
-          : null;
+      const foundAdmin = !foundStudent && !foundFaculty
+        ? await db.collection("admins").findOne({ email: ride.ownerEmail })
+        : null;
       const owner = foundStudent || foundFaculty || foundAdmin || null;
       if (owner) ownerId = owner._id.toString();
     }

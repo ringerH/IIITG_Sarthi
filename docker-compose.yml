@@ -9,7 +9,7 @@ services:
       - "5001:5001"
     environment:
       - PORT=5001
-      - MONGO_URI=mongodb+srv://arunavdutta20_db_user:Alpha12345@cluster1.bipwdgc.mongodb.net/?appName=Cluster1
+      - MONGO_URI=${MONGO_URI_AUTH}
       - JWT_SECRET=${JWT_SECRET}
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
     networks:
@@ -23,7 +23,7 @@ services:
       - "5003:5003"
     environment:
       - PORT=5003
-      - MONGO_URI=mongodb+srv://arunavdutta20_db_user:Alpha12345@cluster1.bipwdgc.mongodb.net/?appName=Cluster1
+      - MONGO_URI=${MONGO_URI_AUTH}
       - JWT_SECRET=${JWT_SECRET}
       - AUTH_SERVICE_URL=http://auth-service:5001
       - FRONTEND_ORIGIN=http://localhost:3000
@@ -40,7 +40,7 @@ services:
       - "5000:5000"
     environment:
       - PORT=5000
-      - MONGO_URI=mongodb+srv://Hillol_Pratim:UaYcMvlq8Oqsxsif@cluster0.mjpsis4.mongodb.net/
+      - MONGO_URI=${MONGO_URI_MARKETPLACE}
       - JWT_SECRET=${JWT_SECRET}
       - AUTH_SERVICE_URL=http://auth-service:5001
     networks:

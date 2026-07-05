@@ -8,7 +8,7 @@ const userRoutes = require("./Routes/userRoutes");
 const app = express();
 const http = require("http");
 const { Server } = require("socket.io");
-const PORT = process.env.PORT || 5001; 
+const PORT = process.env.PORT || 5003; 
 
 const DEFAULT_FRONTEND_ORIGINS = [
   "http://localhost:5173",
@@ -81,6 +81,18 @@ socketUtil.setIO(io);
 
 io.on("connection", (socket) => {
     console.log("Socket connected:", socket.id);
+    
+    // Add socket to chat room
+    socket.on("join", (chatId) => {
+        socket.join(chatId);
+        console.log(`Socket ${socket.id} joined room: ${chatId}`);
+    });
+    
+    // Add socket to user notification room
+    socket.on("joinUser", (userId) => {
+        socket.join("user:" + userId);
+        console.log(`Socket ${socket.id} joined user notification room: user:${userId}`);
+    });
 });
 
 
