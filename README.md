@@ -56,19 +56,22 @@ The system follows a **Microservices Architecture**, separating concerns into di
 - [Design Doc](docs/design_doc_final.pdf)
 ### Service Breakdown
 
-1. **Auth Service** (`/Back-end/auth-service`):
+1. **API Gateway** (`/Back-end/api-gateway`):
+    * Unified public-facing entry point for all frontend HTTP and WebSocket traffic.
+    * Proxies requests and socket connections to the appropriate private microservices.
+2. **Auth Service** (`/Back-end/auth-service`):
     * Handles Google OAuth via Passport.js strategies.
     * Manages user creation, role assignment, and JWT token issuance.
     * Connects to MongoDB `users` collection.
-2. **Ride Service** (`/Back-end/ride-service`):
+3. **Ride Service** (`/Back-end/ride-service`):
     * Manages ride listings, ride requests, and status updates.
     * **Socket.IO Server**: Handles real-time chat and live notifications for ride updates.
-3. **Marketplace Service** (`/Back-end/marketplace-service`):
+4. **Marketplace Service** (`/Back-end/marketplace-service`):
     * Handles product listings (CRUD operations).
     * Manages interactions between buyers and sellers.
-4. **Frontend** (`/Front-end`):
+5. **Frontend** (`/Front-end`):
     * Single Page Application (SPA) built with React & Vite.
-    * Communicates with all three backend services via REST APIs.
+    * Communicates with all backend services through the centralized API Gateway.
 
 ---
 
@@ -94,9 +97,9 @@ The application is built using the **MERN** stack, optimized for performance and
 
 Integration is handled through RESTful APIs and WebSockets, ensuring seamless communication between independent services.
 
-* **API Gateway Pattern**: The Frontend acts as the consumer, routing requests to the appropriate microservice based on the URL path:
-    * `/api/auth` → **Auth Service** (Port 5001)
-    * `/api/rides` → **Ride Service** (Port 5003)
+* **API Gateway Pattern**: A dedicated **API Gateway** running on port 8000 acts as the single point of contact for the frontend, forwarding all REST endpoints and WebSockets (`/socket.io`) to the respective backend microservices:
+    * `/api/auth` & `/api/user/me` → **Auth Service** (Port 5001)
+    * `/api/rides` & `/socket.io` → **Ride Service** (Port 5003)
     * `/api/listings` → **Marketplace Service** (Port 5000)
 * **Real-Time Communication**:
     * The **Ride Service** hosts a Socket.io server.
@@ -183,11 +186,12 @@ docker-compose up --build
 
 ### Deployment (Render)
 
-The application is live on Render, split into four separate services:
+The application is live on Render, split into five separate services:
 
-* **Auth Web Service**: Node.js runtime.
-* **Ride Web Service**: Node.js runtime.
-* **Marketplace Web Service**: Node.js runtime.
+* **API Gateway Web Service**: Central entrypoint for all frontend requests.
+* **Auth Web Service**: Private/Web service handling user identity.
+* **Ride Web Service**: Private/Web service managing carpools and WebSockets.
+* **Marketplace Web Service**: Private/Web service hosting listing database.
 * **Frontend Static Site**: React/Vite build.
 
 ### Environment Variables (Production)
@@ -195,7 +199,8 @@ The application is live on Render, split into four separate services:
 * `MONGO_URI`: MongoDB Atlas Connection String.
 * `JWT_SECRET`: Secure token signature.
 * `GOOGLE_CLIENT_ID`: OAuth credential.
-* `VITE_AUTH_URL`, `VITE_RIDE_URL`, `VITE_MARKETPLACE_URL`: Service inter-links.
+* `AUTH_SERVICE_URL`, `RIDE_SERVICE_URL`, `MARKETPLACE_SERVICE_URL`: Configured on the API Gateway to route requests to backend instances.
+* `VITE_API_BASE_URL`, `VITE_AUTH_URL`, `VITE_RIDE_URL`, `VITE_MARKETPLACE_URL`: Configured on the Frontend to point exclusively to the public URL of the API Gateway.
 
 ---
 
@@ -220,8 +225,12 @@ cd sarthi
 2. **Install dependencies for each service**
 
 ```bash
+# API Gateway
+cd Back-end/api-gateway
+npm install
+
 # Auth Service
-cd Back-end/auth-service
+cd ../auth-service
 npm install
 
 # Ride Service
@@ -245,6 +254,7 @@ Create `.env` files in each service directory with the required variables (see [
 
 ```bash
 # Start each service in separate terminals
+cd Back-end/api-gateway && npm start
 cd Back-end/auth-service && npm start
 cd Back-end/ride-service && npm start
 cd Back-end/marketplace-service && npm start
