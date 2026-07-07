@@ -66,6 +66,11 @@ const RideCard = ({ ride }) => {
       <p>
         <strong>Available Seats:</strong> {ride.availableSeats}
       </p>
+      {ride.distance !== undefined && ride.distance > 0 && (
+        <p>
+          <strong>Distance:</strong> {ride.distance} km
+        </p>
+      )}
       <p>
         <strong>Date:</strong> {formattedDate}
       </p>
@@ -95,6 +100,7 @@ RideCard.propTypes = {
     pickupLocation: PropTypes.string.isRequired,
     dropoffLocation: PropTypes.string.isRequired,
     availableSeats: PropTypes.number.isRequired,
+    distance: PropTypes.number,
     rideDate: PropTypes.string.isRequired, // Assumes date is passed as a string
     description: PropTypes.string,
   }).isRequired,

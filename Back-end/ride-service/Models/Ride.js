@@ -23,6 +23,10 @@ const rideSchema = new mongoose.Schema(
       type: Date,
       required: true,
     },
+    distance: {
+      type: Number,
+      default: 0,
+    },
     description: {
       type: String,
       required: true,

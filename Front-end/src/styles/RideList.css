@@ -81,3 +81,48 @@
     border: 1px dashed #e5e7eb;
     margin-top: 20px;
   }
+  
+  /* Filter and Sort Panel Styling */
+  .filter-panel {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    padding: 16px;
+    background-color: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    align-items: flex-end;
+  }
+  
+  .filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex: 1;
+    min-width: 200px;
+  }
+  
+  .filter-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: #4b5563;
+  }
+  
+  .filter-input,
+  .filter-select {
+    padding: 10px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 14px;
+    color: #374151;
+    background-color: #fff;
+    outline: none;
+    transition: border-color 0.15s ease-in-out;
+  }
+  
+  .filter-input:focus,
+  .filter-select:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  }

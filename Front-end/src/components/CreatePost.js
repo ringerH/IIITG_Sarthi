@@ -9,6 +9,7 @@ const CreatePost = () => {
   const [pickupLocation, setPickupLocation] = useState("");
   const [dropoffLocation, setDropoffLocation] = useState("");
   const [availableSeats, setAvailableSeats] = useState("");
+  const [distance, setDistance] = useState(""); // Add distance state
   const [rideDate, setRideDate] = useState("");
   const [description, setDescription] = useState("");
   const [error, setError] = useState(null); 
@@ -29,6 +30,15 @@ const CreatePost = () => {
       return;
     }
 
+    let parsedDistance = 0;
+    if (distance !== "") {
+      parsedDistance = parseFloat(distance);
+      if (isNaN(parsedDistance) || parsedDistance < 0) {
+        setError("Distance must be a non-negative number.");
+        return;
+      }
+    }
+
     const dateObj = new Date(rideDate);
     if (!rideDate || isNaN(dateObj.valueOf())) {
       setError("Please provide a valid date/time for the ride.");
@@ -41,6 +51,7 @@ const CreatePost = () => {
       dropoffLocation,
       availableSeats: seats,
       rideDate: dateObj.toISOString(),
+      distance: parsedDistance, // Add distance to payload
       description,
     };
 
@@ -55,6 +66,7 @@ const CreatePost = () => {
       setPickupLocation("");
       setDropoffLocation("");
       setAvailableSeats("");
+      setDistance(""); // Reset distance state
       setRideDate("");
       setDescription("");
 
@@ -102,6 +114,19 @@ const CreatePost = () => {
             value={availableSeats}
             onChange={(e) => setAvailableSeats(e.target.value)}
             required
+          />
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="distance">Distance (in km)</label>
+          <input
+            id="distance"
+            className="form-input"
+            type="number"
+            step="any"
+            placeholder="e.g., 22.5"
+            value={distance}
+            onChange={(e) => setDistance(e.target.value)}
           />
         </div>
 
