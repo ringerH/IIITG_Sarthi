@@ -36,18 +36,21 @@ router.post("/rides/:id/join", verifyAuth, async (req, res) => {
     // If ride.ownerId is missing but ownerEmail exists, try to find owner's user id
     let ownerId = ride.ownerId || null;
     if (!ownerId && ride.ownerEmail) {
-      // Search across user collections directly via MongoDB collections
-      const db = mongoose.connection.db;
-      const foundStudent = await db.collection("students").findOne({ email: ride.ownerEmail });
-      const foundFaculty = !foundStudent
-        ? (await db.collection("faculties").findOne({ email: ride.ownerEmail }) ||
-           await db.collection("faculty").findOne({ email: ride.ownerEmail }))
-        : null;
-      const foundAdmin = !foundStudent && !foundFaculty
-        ? await db.collection("admins").findOne({ email: ride.ownerEmail })
-        : null;
-      const owner = foundStudent || foundFaculty || foundAdmin || null;
-      if (owner) ownerId = owner._id.toString();
+      // Call auth-service API endpoint to lookup owner details securely
+      const axios = require("axios");
+      const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL || "http://localhost:5001";
+      try {
+        console.log(`[RIDE-SERVICE] Looking up user profile for ${ride.ownerEmail} via auth-service`);
+        const response = await axios.get(`${AUTH_SERVICE_URL}/api/user/by-email`, {
+          params: { email: ride.ownerEmail },
+          headers: { Authorization: req.headers.authorization }
+        });
+        if (response.data && response.data.success && response.data.user) {
+          ownerId = response.data.user.id;
+        }
+      } catch (err) {
+        console.error("[RIDE-SERVICE] Failed to query auth-service for owner details:", err.message);
+      }
     }
 
     // Prevent owner from joining their own ride

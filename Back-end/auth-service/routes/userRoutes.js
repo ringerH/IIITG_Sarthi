@@ -113,4 +113,40 @@ router.put("/me", verifyAuth, async (req, res) => {
   }
 });
 
+// GET /api/user/by-email?email=xxx
+// Protected route to resolve user details by email
+router.get("/by-email", verifyAuth, async (req, res) => {
+  const { email } = req.query;
+  if (!email) {
+    return res.status(400).json({ message: "Email query parameter required" });
+  }
+
+  try {
+    const student = await Student.findOne({ email }).lean();
+    const faculty = !student
+      ? (await Faculty.findOne({ email }).lean())
+      : null;
+    const admin = !student && !faculty ? await Admin.findOne({ email }).lean() : null;
+
+    const user = student || faculty || admin;
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Standardized user representation
+    return res.json({
+      success: true,
+      user: {
+        id: user._id.toString(),
+        email: user.email,
+        fullName: user.fullName || user.name || "",
+        role: student ? "student" : faculty ? "faculty" : "admin",
+      },
+    });
+  } catch (err) {
+    console.error("Error in by-email lookup:", err);
+    return res.status(500).json({ message: "Internal server error during user lookup" });
+  }
+});
+
 module.exports = router;
