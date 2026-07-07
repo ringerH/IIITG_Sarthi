@@ -22,27 +22,14 @@ export default defineConfig({
       usePolling: true,
     },
     proxy: {
-      '/api/auth': {
-        target: process.env.VITE_AUTH_URL || 'http://localhost:5001',
+      '/api': {
+        target: 'http://localhost:8000',
         changeOrigin: true,
       },
-      '/api/user': {
-        target: process.env.VITE_AUTH_URL || 'http://localhost:5001',
+      '/socket.io': {
+        target: 'http://localhost:8000',
+        ws: true,
         changeOrigin: true,
-      },
-      '/api/ride': {
-        target: process.env.VITE_RIDE_URL || 'http://localhost:5003',
-        changeOrigin: true,
-      },
-      '/api/listings': {
-        target: process.env.VITE_MARKETPLACE_URL || 'http://localhost:5000',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, '/api')
-      },
-      '/api/marketplace': {
-        target: process.env.VITE_MARKETPLACE_URL || 'http://localhost:5000',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api\/marketplace/, '/api')
       }
     }
   }
